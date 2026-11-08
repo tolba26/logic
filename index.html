@@ -1,0 +1,1391 @@
+<title>Digital Logic II Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap">
+<style>
+/* Layout: a logic-analyzer study notebook — sticky channel index on the right (RTL), one reading column, signal traces as the recurring motif */
+:root{
+  --paper:#F2F4F7; --surface:#FFFFFF; --sunk:#E9EDF2; --ink:#142032; --muted:#566377; --line:#D3DAE3; --grid:#E2E7EE;
+  --accent:#2347B5; --accent-ink:#FFFFFF; --accent-soft:#E2E8F9;
+  --sig-in:#2257C7; --sig-mid:#167A51; --sig-out:#962D81; --sig-q:#BF3F28; --clk:#9C640B;
+  --ok:#157A47; --ok-soft:#DFF2E6; --bad:#BE3829; --bad-soft:#FBE4E0; --warn:#8C5B00; --warn-soft:#FAEFD6; --deep-soft:#E8EBF8;
+  --g0:#2257C7; --g1:#BF3F28; --g2:#167A51; --g3:#962D81; --fig-bg:#FFFFFF;
+  --f-display:"Readex Pro","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Readex Pro",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E131A; --surface:#151C26; --sunk:#1B2431; --ink:#E4E9F0; --muted:#98A4B5; --line:#2A3443; --grid:#202A37;
+  --accent:#8BA4FF; --accent-ink:#0E131A; --accent-soft:#1E2945;
+  --sig-in:#78A2FF; --sig-mid:#4FC98F; --sig-out:#E487D0; --sig-q:#FF8466; --clk:#E5AC45;
+  --ok:#5BD08F; --ok-soft:#163525; --bad:#FF7F6E; --bad-soft:#3A1C19; --warn:#EDB95A; --warn-soft:#352A12; --deep-soft:#1C2238;
+  --g0:#78A2FF; --g1:#FF8466; --g2:#4FC98F; --g3:#E487D0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E131A; --surface:#151C26; --sunk:#1B2431; --ink:#E4E9F0; --muted:#98A4B5; --line:#2A3443; --grid:#202A37;
+  --accent:#8BA4FF; --accent-ink:#0E131A; --accent-soft:#1E2945;
+  --sig-in:#78A2FF; --sig-mid:#4FC98F; --sig-out:#E487D0; --sig-q:#FF8466; --clk:#E5AC45;
+  --ok:#5BD08F; --ok-soft:#163525; --bad:#FF7F6E; --bad-soft:#3A1C19; --warn:#EDB95A; --warn-soft:#352A12; --deep-soft:#1C2238;
+  --g0:#78A2FF; --g1:#FF8466; --g2:#4FC98F; --g3:#E487D0; color-scheme:dark}
+*{box-sizing:border-box}
+svg{direction:ltr}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16.5px;line-height:1.9}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+.app{display:grid;grid-template-columns:268px minmax(0,1fr);gap:0;max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--accent);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.35;text-wrap:balance;margin:0}
+h2{font-size:1.75rem;font-weight:700}
+h3{font-size:1.28rem;font-weight:600;margin-top:2.6rem;padding-top:.4rem}
+h4{font-size:1.05rem;font-weight:600;margin-top:1.4rem}
+p{margin:.7rem 0;max-width:68ch}
+ul,ol{margin:.6rem 0;padding-inline-start:1.4rem;max-width:66ch}
+li{margin:.25rem 0}
+small{font-size:.82em}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.m,.mono{font-family:var(--f-mono);font-size:.92em;unicode-bidi:isolate;direction:ltr;white-space:nowrap}
+.ov{text-decoration:overline;text-decoration-thickness:1.5px}
+.eqb{font-family:var(--f-mono);direction:ltr;text-align:left;background:var(--sunk);border-radius:6px;padding:.65rem .9rem;margin:.7rem 0;font-size:.98rem;line-height:1.9;overflow-x:auto;max-width:68ch}
+.eqb .hl{color:var(--sig-q);font-weight:600}
+.eqb .c{color:var(--muted)}
+kbd{font-family:var(--f-mono);font-size:.85em;background:var(--sunk);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 .35em}
+
+/* sidebar */
+.toc{position:sticky;top:env(safe-area-inset-top,0px);height:100vh;overflow-y:auto;padding:28px 0 28px 22px;border-left:1px solid var(--line);font-size:.92rem}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.05rem;line-height:1.3;display:block;color:var(--ink);text-decoration:none}
+.brand span{display:block;font-family:var(--f-body);font-weight:400;font-size:.8rem;color:var(--muted)}
+.progress{margin:14px 0 18px}
+.progress .bar{height:4px;background:var(--grid);border-radius:2px;overflow:hidden}
+.progress .bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.progress small{color:var(--muted)}
+.toc ol{list-style:none;padding:0;margin:0;max-width:none}
+.toc-lec{margin:2px 0}
+.toc-lec>a{display:flex;gap:8px;align-items:baseline;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:600}
+.toc-lec>a .n{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);min-width:2.1em}
+.toc-lec>a.done::after{content:"✓";margin-inline-start:auto;color:var(--ok);font-weight:700}
+.toc-lec ol{display:none;padding-inline-start:12px;margin:2px 0 8px;border-inline-start:1px solid var(--line);margin-inline-start:20px}
+.toc-lec.here ol{display:block}
+.toc-lec ol a{display:block;padding:2px 10px;color:var(--muted);text-decoration:none;font-size:.86rem;line-height:1.6}
+.toc a.active{color:var(--accent);background:var(--accent-soft)}
+.toc-lec ol a.active{background:none;font-weight:600}
+.topbar{display:none}
+
+main{min-width:0;padding:28px 0 80px 0;padding-inline-start:40px}
+.wrap{max-width:860px}
+
+/* hero */
+.hero{padding:18px 0 8px}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);direction:ltr;text-align:right}
+.hero h1{font-size:clamp(2rem,4.6vw,3rem);font-weight:700;margin:.4rem 0 .2rem;direction:ltr;text-align:right}
+.hero .sub{font-size:1.12rem;color:var(--muted);max-width:60ch}
+.trace-deco{display:block;width:100%;max-width:520px;height:34px;margin:6px 0 4px}
+.trace-deco path{fill:none;stroke:var(--sig-in);stroke-width:2}
+.trace-deco path.b{stroke:var(--sig-q);opacity:.85}
+.roadmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:22px 0 10px;counter-reset:r}
+.rm{display:flex;flex-direction:column;gap:4px;padding:12px 12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;text-decoration:none;color:var(--ink);min-width:0}
+.rm:hover{border-color:var(--accent)}
+.rm .k{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);direction:ltr;text-align:right}
+.rm b{font-family:var(--f-display);font-weight:600;font-size:.98rem;line-height:1.35;direction:ltr;text-align:right}
+.rm span{font-size:.84rem;color:var(--muted);line-height:1.55}
+.lvl{align-self:flex-start;margin-top:auto;font-size:.72rem;padding:1px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.lvl.h{background:var(--warn-soft);color:var(--warn)}
+.lvl.hh{background:var(--bad-soft);color:var(--bad)}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:18px 0 0}
+.how div{min-width:0}
+.how b{display:block;font-family:var(--f-display);font-weight:600}
+.how p{margin:.2rem 0;font-size:.93rem;color:var(--muted)}
+.chain{font-size:.95rem;color:var(--muted);margin-top:18px}
+
+/* lecture */
+.lec{margin-top:64px;padding-top:28px;border-top:1px solid var(--line)}
+.lec-head{display:flex;flex-direction:column;gap:4px}
+.lec-head .eyebrow{text-align:right}
+.lec-head h2{direction:ltr;text-align:right}
+.lec-head .ar{font-family:var(--f-display);font-weight:500;color:var(--muted);font-size:1.05rem}
+.lec-meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:.86rem;color:var(--muted)}
+
+/* callouts */
+.note{margin:1.1rem 0;padding:.85rem 1rem;border-radius:8px;background:var(--sunk);max-width:72ch}
+.note>.tag{display:inline-block;font-family:var(--f-display);font-size:.76rem;font-weight:600;padding:1px 9px;border-radius:999px;margin-bottom:.25rem;background:var(--surface);color:var(--muted)}
+.note p{margin:.35rem 0}
+.note.tip{background:var(--ok-soft)} .note.tip>.tag{color:var(--ok)}
+.note.trap{background:var(--warn-soft)} .note.trap>.tag{color:var(--warn)}
+.note.err{background:var(--bad-soft)} .note.err>.tag{color:var(--bad)}
+.note.deep{background:var(--deep-soft)} .note.deep>.tag{color:var(--accent)}
+.note.sheet{background:transparent;border:1.5px dashed var(--line)} .note.sheet>.tag{color:var(--muted)}
+
+/* panels (interactive) */
+.panel{margin:1.2rem 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.panel>.ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.panel>.ph b{font-family:var(--f-display);font-weight:600;font-size:1rem}
+.panel>.ph span{font-size:.85rem;color:var(--muted)}
+.kind{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:4px}
+
+/* tables */
+.scrollx{overflow-x:auto;max-width:100%}
+.tbl{border-collapse:collapse;font-family:var(--f-mono);font-size:.9rem;font-variant-numeric:tabular-nums;margin:.5rem 0;background:var(--surface)}
+.tbl:not(.prose){direction:ltr}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.3rem .7rem;text-align:center;white-space:nowrap}
+.tbl th{background:var(--sunk);font-weight:600}
+.tbl td.res,.tbl th.res{background:color-mix(in srgb,var(--accent-soft) 70%,transparent);font-weight:600}
+.tbl tr.cur td,.tbl tr.cur th{background:var(--warn-soft)}
+.tbl td.hot{outline:2px solid var(--sig-q);outline-offset:-2px;font-weight:700}
+.tbl tr.chg td.res{color:var(--sig-q)}
+.tbl td small{font-family:var(--f-body)}
+.tbl.prose{font-family:var(--f-body);font-size:.92rem}
+.tbl.prose td,.tbl.prose th{white-space:normal;text-align:right;vertical-align:top;padding:.45rem .7rem;line-height:1.65}
+.tbl.prose{direction:rtl}
+.tbl .code{color:var(--muted)}
+.tbl.trace td.one{color:var(--sig-out);font-weight:700}
+.tbl.trace td.fin{color:var(--muted);border-style:dashed}
+.tbl.fill td.blank{padding:2px}
+.cellbtn{font-family:var(--f-mono);font-size:.92rem;min-width:3.2em;height:2em;border:1px dashed var(--muted);background:var(--paper);color:var(--ink);border-radius:5px;cursor:pointer}
+.cellbtn:hover{border-style:solid;border-color:var(--accent)}
+.cellbtn.ok{border:1.5px solid var(--ok);background:var(--ok-soft)}
+.cellbtn.no{border:1.5px solid var(--bad);background:var(--bad-soft)}
+.tbl-row{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.tbl-row>*{min-width:0}
+.cap{font-size:.82rem;color:var(--muted);font-family:var(--f-display);font-weight:500;margin-top:.3rem}
+
+/* controls */
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{font-family:var(--f-display);font-size:.9rem;font-weight:500;padding:.42rem .95rem;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.45;cursor:default}
+.segs{display:inline-flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
+.segs.wrap{max-width:100%}
+.seg{font-family:var(--f-mono);font-size:.84rem;padding:.32rem .75rem;border:0;border-inline-start:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.seg:first-child{border-inline-start:0}
+.seg[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.ctlrow{display:flex;flex-wrap:wrap;gap:12px 26px;align-items:center}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.ctl-l{font-size:.85rem;color:var(--muted);font-family:var(--f-display)}
+.readout{font-size:.93rem;background:var(--sunk);border-radius:6px;padding:.55rem .8rem;margin:.6rem 0 0;max-width:none;min-height:2.6em}
+.bit{display:inline-flex;flex-direction:column;align-items:center;min-width:3.1rem;padding:.25rem .5rem;border:1px solid var(--line);border-radius:7px;background:var(--surface);cursor:pointer;color:var(--ink);font-family:var(--f-mono)}
+.bit-n{font-size:.75rem;color:var(--muted)} .bit-v{font-size:1.15rem;font-weight:600}
+.bit[aria-pressed="true"]{border-color:var(--sig-in);background:color-mix(in srgb,var(--sig-in) 14%,var(--surface))}
+.bit[aria-pressed="true"] .bit-v{color:var(--sig-in)}
+.cbits{display:flex;gap:6px}
+.seqin{font-family:var(--f-mono);font-size:1rem;letter-spacing:.12em;padding:.35rem .6rem;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);width:min(100%,19rem)}
+.eqline{font-family:var(--f-mono);font-size:.86rem;color:var(--muted);margin:8px 0;overflow-x:auto;white-space:nowrap}
+.hist{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:10px;font-family:var(--f-mono);font-size:.86rem}
+.hist .hs{padding:1px 7px;border-radius:5px;background:var(--sunk)}
+.hist .hs small{color:var(--muted)}
+.hist .hs.now{background:var(--accent);color:var(--accent-ink)} .hist .hs.now small{color:inherit;opacity:.8}
+.hist .hs.next{border:1px dashed var(--accent);background:transparent}
+.hist .arr{color:var(--muted)}
+
+/* waves */
+.wavebox{overflow-x:auto;max-width:100%;margin:8px 0;padding-bottom:4px}
+.wave{display:block;max-width:none}
+.wv-grid{stroke:var(--grid);stroke-width:1}
+.wv-edge{stroke:var(--clk);stroke-width:1;stroke-dasharray:3 3;opacity:.8}
+.wv-edgemark{fill:var(--clk)}
+.wv-name{font-family:var(--f-mono);font-size:13px;font-weight:600;fill:var(--ink)}
+.wv-time{font-family:var(--f-mono);font-size:10.5px;fill:var(--muted)}
+.wv-line{fill:none;stroke-width:2.2;stroke-linejoin:miter;stroke:var(--ink)}
+.wv-line.in{stroke:var(--sig-in)} .wv-line.mid{stroke:var(--sig-mid)} .wv-line.out{stroke:var(--sig-out)} .wv-line.q{stroke:var(--sig-q)} .wv-line.clk{stroke:var(--clk)}
+.wv-line.ans{stroke:var(--ok);stroke-dasharray:5 3}
+.wv-unknown{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:2 4}
+.wv-hit{fill:transparent;cursor:pointer}
+.wv-hit:hover{fill:color-mix(in srgb,var(--accent) 12%,transparent)}
+.wv-hit:focus{outline:none;fill:color-mix(in srgb,var(--accent) 18%,transparent)}
+.wv-cursor{fill:var(--warn-soft)}
+.wv-shade.bad{fill:var(--bad-soft)}
+.wv-shade.dly{fill:color-mix(in srgb,var(--clk) 22%,transparent)}
+
+/* circuits */
+.cir{display:block;max-width:100%;height:auto}
+.cir .gate{fill:var(--surface);stroke:var(--ink);stroke-width:1.8}
+.cir .wire{fill:none;stroke:var(--ink);stroke-width:1.6}
+.cir .wire.hot{stroke:var(--sig-q);stroke-dasharray:5 3}
+.cir .box{fill:var(--sunk);stroke:var(--ink);stroke-width:1.5}
+.cir .mem{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.cir text{font-family:var(--f-mono);font-size:13px;fill:var(--ink)}
+.cir text.s{font-size:11px;fill:var(--muted)}
+.cir text.ar{font-family:var(--f-body);font-size:12px}
+.cir .arrowhead{fill:var(--ink)}
+.cir .dot{fill:var(--ink)}
+.figrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.figrow>div{min-width:0}
+figure{margin:1rem 0}
+figcaption{font-size:.84rem;color:var(--muted);margin-top:4px}
+
+/* fsm */
+.fsm-top{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.fsm-g{min-width:0}
+.fsm-top.wide{grid-template-columns:minmax(0,1fr)}
+.fsm-top.wide .fsm-t{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.fsm-t{min-width:0}
+.fsm-graph{width:100%;height:auto;display:block}
+.fsm-graph .edge{fill:none;stroke:var(--muted);stroke-width:1.5}
+.fsm-graph .edge.hot{stroke:var(--sig-q);stroke-width:2.6}
+.fsm-graph .arrow-n{fill:var(--muted)} .fsm-graph .arrow-hot{fill:var(--sig-q)}
+.fsm-graph .elab{font-family:var(--f-mono);font-size:11.5px;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.fsm-graph .elab.hot{fill:var(--sig-q);font-weight:700}
+.fsm-graph .node circle{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}
+.fsm-graph .node circle.ring{fill:none;stroke-width:1;stroke:var(--muted)}
+.fsm-graph .node.cur circle{fill:var(--accent);stroke:var(--accent)}
+.fsm-graph .node.cur circle.ring{stroke:var(--accent-ink);fill:none}
+.fsm-graph .node.cur .nlab{fill:var(--accent-ink)}
+.fsm-graph .nlab{font-family:var(--f-mono);font-size:14px;font-weight:600;fill:var(--ink)}
+.fsm-graph .nlab.sm{font-size:11.5px}
+.fsm-ctl{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px}
+.fsm-ctl .btnrow{margin-top:0}
+.meaning{margin:.6rem 0 0;display:grid;gap:3px;font-size:.86rem}
+.meaning div{display:flex;gap:8px;padding:1px 6px;border-radius:5px}
+.meaning dt{font-family:var(--f-mono);font-weight:600;min-width:1.4em}
+.meaning dd{margin:0;color:var(--muted)}
+.meaning div.cur{background:var(--warn-soft)} .meaning div.cur dd{color:var(--ink)}
+
+/* ff playground */
+.ffstage{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:10px 0}
+.ffins{display:flex;gap:8px}
+.ffbody{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1.5px solid var(--ink);border-radius:6px;background:var(--sunk)}
+.ffchip{font-family:var(--f-mono);font-weight:600;font-size:.85rem;color:var(--muted)}
+.lamp{display:flex;gap:6px}
+.lq{font-family:var(--f-mono);font-size:.95rem;padding:.2rem .6rem;border-radius:5px;background:var(--surface);border:1px solid var(--line)}
+.lq.on{background:var(--sig-q);border-color:var(--sig-q);color:#fff}
+.lamp.bad .lq{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.ffgrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;margin-top:10px;align-items:start}
+.ffgrid>div{min-width:0}
+.mini-h{font-size:.8rem;color:var(--muted);font-family:var(--f-display)}
+.ff-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.ffc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.ffc h4{margin:0;direction:ltr;text-align:right}
+.ffc .one{font-size:.92rem;margin:.3rem 0 .4rem;color:var(--muted)}
+.ffc .eqb{margin:.4rem 0;font-size:.92rem}
+
+/* edge ex */
+.edgepick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:6px}
+.ep{border:1px solid var(--line);border-radius:7px;padding:6px;text-align:center;min-width:0}
+.ep.ok{border-color:var(--ok);background:var(--ok-soft)} .ep.no{border-color:var(--bad);background:var(--bad-soft)}
+.ep-h{font-family:var(--f-mono);font-weight:600;font-size:.85rem;color:var(--clk)}
+.ep-in{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.ep .segs{margin-top:4px}
+
+/* walkthrough */
+.walk{margin:1.2rem 0;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.walk-head{display:grid;gap:8px;margin-bottom:6px}
+.walk-count{font-family:var(--f-display);font-size:.95rem}
+.walk-count b{font-weight:600}
+.walk-bar{height:3px;background:var(--grid);border-radius:2px;overflow:hidden}
+.walk-bar i{display:block;height:100%;background:var(--accent);transition:width .35s}
+.walk-dots{display:flex;flex-wrap:wrap;gap:4px}
+.dot{font-family:var(--f-mono);font-size:.75rem;width:1.8rem;height:1.8rem;border-radius:50%;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer}
+.dot[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.step{padding-top:4px}
+.step h4{margin-top:.3rem}
+.step.enter{animation:stepIn .45s ease-out}
+@keyframes stepIn{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
+.walk-foot{border-top:1px solid var(--grid);padding-top:10px}
+
+/* kmap */
+.kmaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin:1rem 0}
+.kmap{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0;overflow-x:auto}
+.ktbl{border-collapse:collapse;font-family:var(--f-mono);font-size:.9rem;margin:0 auto}
+.ktbl th{font-weight:500;color:var(--muted);font-size:.78rem;padding:2px 6px}
+.ktbl td{width:2.3rem;height:2.1rem;text-align:center;border:1px solid var(--line);transition:opacity .2s}
+.ktbl td.v1{font-weight:700;color:var(--ink)} .ktbl td.vX{color:var(--muted)} .ktbl td.v0{color:var(--line)}
+.kmap.focus td{opacity:.3} .kmap.focus td.on{opacity:1}
+.corner{position:relative;width:3.6rem;height:2.4rem;padding:0!important}
+.corner .kn{position:absolute;top:0;left:2px;font-weight:700;color:var(--ink);font-size:.8rem}
+.corner .kr{position:absolute;bottom:0;left:2px;font-size:.7rem}
+.corner .kc{position:absolute;top:0;right:2px;font-size:.7rem}
+.kterms{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.kchip{font-family:var(--f-mono);font-size:.82rem;padding:1px 9px;border-radius:999px;border:1.5px solid var(--c);background:transparent;color:var(--ink);cursor:default}
+.kchip.none{border:1px dashed var(--line);color:var(--muted);font-family:var(--f-body)}
+.keq{text-align:center;font-family:var(--f-mono);font-size:.9rem;margin-top:6px;font-weight:600}
+.keq small{font-family:var(--f-body);font-weight:400;color:var(--bad)}
+
+/* quiz */
+.quiz{display:grid;gap:12px}
+.q{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.qq{margin:0 0 .5rem;font-weight:500}
+.qn{display:inline-grid;place-items:center;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--sunk);font-family:var(--f-mono);font-size:.8rem;margin-inline-end:6px}
+.qopts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.qopt{text-align:right;font-family:var(--f-body);font-size:.92rem;padding:.45rem .7rem;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);cursor:pointer;line-height:1.5}
+.qopt:hover:not(:disabled){border-color:var(--accent)}
+.qopt.right{border-color:var(--ok);background:var(--ok-soft)}
+.qopt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.qopt:disabled{cursor:default}
+.qwhy{font-size:.9rem;margin:.5rem 0 0;color:var(--muted)}
+.qfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.qscore{margin:0;font-family:var(--f-display)}
+
+.calc{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:end}
+.calc label{display:grid;gap:2px;font-size:.82rem;color:var(--muted);font-family:var(--f-mono)}
+.calc input{font-family:var(--f-mono);font-size:1rem;width:7rem;padding:.3rem .5rem;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.calc-r{font-family:var(--f-mono);font-size:1.02rem;font-weight:600;color:var(--accent);padding:.3rem 0}
+
+.steps{counter-reset:s;list-style:none;padding:0;max-width:70ch}
+.steps>li{counter-increment:s;position:relative;padding-inline-start:2.4rem;margin:.6rem 0}
+.steps>li::before{content:counter(s);position:absolute;inset-inline-start:0;top:.15rem;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--f-mono);font-size:.85rem;font-weight:600;display:grid;place-items:center}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:1rem 0}
+.flow span{font-family:var(--f-display);font-size:.84rem;padding:.3rem .65rem;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.flow span.k{border-color:var(--accent);color:var(--accent)}
+.flow i{font-style:normal;color:var(--muted)}
+.switch{display:flex;flex-wrap:wrap;gap:6px;margin:.8rem 0}
+.switch button{font-family:var(--f-display);font-size:.85rem;padding:.3rem .8rem;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.switch button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.done-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:26px}
+.done-btn{font-family:var(--f-display);font-size:.92rem;padding:.5rem 1rem;border-radius:8px;border:1.5px solid var(--ok);background:transparent;color:var(--ok);cursor:pointer}
+.done-btn[aria-pressed="true"]{background:var(--ok);color:var(--surface)}
+.vids{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9rem}
+/* sheets */
+.toc-lec.sh>a{font-weight:500;color:var(--muted)}
+.toc-lec.sh>a .n{color:var(--clk)}
+.sheet-sec .lec-head .eyebrow{color:var(--clk)}
+.policy{margin:14px 0 4px;padding:.7rem 1rem;border:1.5px solid var(--clk);border-radius:8px;font-size:.92rem;max-width:72ch}
+.policy p{margin:.2rem 0}
+.sq{margin-top:44px;padding-top:22px;border-top:1px dashed var(--line)}
+.sq-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.sq-h .qb{font-family:var(--f-mono);font-weight:600;font-size:.9rem;color:var(--accent-ink);background:var(--accent);padding:1px 9px;border-radius:5px}
+.sq-h h3{margin:0;padding:0;font-size:1.18rem}
+.sq-h .topic{font-size:.8rem;color:var(--muted);font-family:var(--f-mono)}
+.en{direction:ltr;text-align:left;font-size:.92rem;color:var(--muted);background:var(--sunk);border-radius:6px;padding:.55rem .85rem;margin:.7rem 0;max-width:72ch;line-height:1.65}
+details.hint,details.sol{margin:.8rem 0;border:1px solid var(--line);border-radius:8px;background:var(--surface);max-width:none}
+details.hint>summary,details.sol>summary{cursor:pointer;padding:.55rem .9rem;font-family:var(--f-display);font-weight:500;font-size:.95rem;list-style:none;display:flex;align-items:center;gap:8px}
+details.hint>summary::-webkit-details-marker,details.sol>summary::-webkit-details-marker{display:none}
+details.hint>summary::before,details.sol>summary::before{content:"+";font-family:var(--f-mono);width:1.3rem;height:1.3rem;display:grid;place-items:center;border-radius:4px;background:var(--sunk);color:var(--muted)}
+details[open].hint>summary::before,details[open].sol>summary::before{content:"−"}
+details.hint>summary{color:var(--ok)}
+details.sol>summary{color:var(--accent)}
+details.hint>div,details.sol>div{padding:0 1rem .8rem}
+.figimg{display:block;max-width:100%;height:auto;background:var(--fig-bg);border-radius:6px;padding:8px;border:1px solid var(--line)}
+footer{margin-top:70px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+
+@media (max-width: 980px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .topbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;background:var(--paper);border-bottom:1px solid var(--line)}
+  .topbar .brand{font-size:.95rem}
+  .toc{position:fixed;top:0;bottom:0;right:0;width:min(300px,86vw);height:auto;z-index:40;background:var(--surface);padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-top:calc(20px + env(safe-area-inset-top,0px));border-left:1px solid var(--line);box-shadow:0 0 40px rgba(0,0,0,.18);transform:translateX(105%);visibility:hidden;transition:transform .25s,visibility .25s}
+  .toc.open{transform:none;visibility:visible}
+  .toc-lec ol{display:block}
+  main{padding-inline-start:0;padding-top:12px}
+  .roadmap{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fsm-top{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width: 620px){
+  body{font-size:16px}
+  .how,.figrow,.ff-cards{grid-template-columns:minmax(0,1fr)}
+  .qopts{grid-template-columns:minmax(0,1fr)}
+  .edgepick{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ffgrid{grid-template-columns:minmax(0,1fr)}
+  h2{font-size:1.5rem}
+}
+</style>
+
+<div class="app" dir="rtl" lang="ar">
+<div class="topbar">
+  <a class="brand" href="#top">Digital Logic II</a>
+  <button class="btn" id="tocbtn" type="button" aria-expanded="false" aria-controls="toc">الفهرس</button>
+</div>
+
+<aside class="toc" id="toc" aria-label="الفهرس">
+  <a class="brand" href="#top">Digital Logic II<span>دفتر مذاكرة تفاعلي · Prof. Magdy A. Ahmed</span></a>
+  <div class="progress"><div class="bar"><i id="progbar"></i></div><small id="prog">خلّصت 0 من 5</small></div>
+  <ol>
+    <li class="toc-lec"><a href="#l0" data-lec="l0"><span class="n">L0</span>Gate Delay</a>
+      <ol><li><a href="#l0-idea">الفكرة</a></li><li><a href="#l0-terms">tPLH و tPHL</a></li><li><a href="#l0-ex20">مثال 20ns خطوة خطوة</a></li><li><a href="#l0-lab">معمل الـ timing</a></li><li><a href="#l0-method">طريقة الحل + الفخ</a></li><li><a href="#l0-quiz">اختبر نفسك</a></li></ol></li>
+    <li class="toc-lec"><a href="#l1" data-lec="l1"><span class="n">L1</span>Flip-Flops</a>
+      <ol><li><a href="#l1-seq">Sequential يعني إيه</a></li><li><a href="#l1-types">Sync و Async</a></li><li><a href="#l1-mm">Mealy و Moore</a></li><li><a href="#l1-clock">الـ Clock</a></li><li><a href="#l1-ff">الأربع أنواع</a></li><li><a href="#l1-play">جرّبهم بإيدك</a></li><li><a href="#l1-exc">الـ Excitation Table</a></li><li><a href="#l1-timing">Timing على الـ edge</a></li><li><a href="#l1-pc">Preset و Clear</a></li><li><a href="#l1-conv">التحويل بين الأنواع</a></li><li><a href="#l1-quiz">اختبر نفسك</a></li></ol></li>
+    <li class="toc-lec sh"><a href="#s1" data-lec="s1"><span class="n">S1</span>Sheet 01</a>
+      <ol><li><a href="#s1-q1">Q1 · JK على الحافتين</a></li><li><a href="#s1-q2">Q2 · Edge ضد Level</a></li><li><a href="#s1-q3">Q3 · معادلة من دايرة</a></li><li><a href="#s1-q4">Q4 · JK من T</a></li><li><a href="#s1-q5">Q5 · MN flip-flop</a></li><li><a href="#s1-q6">Q6 · PRE و CLR</a></li><li><a href="#s1-q7">Q7 · JK من D و MUX</a></li><li><a href="#s1-q8">Q8 · PN flip-flop</a></li></ol></li>
+    <li class="toc-lec"><a href="#l2" data-lec="l2"><span class="n">L2</span>Analysis</a>
+      <ol><li><a href="#l2-flow">الخطوات</a></li><li><a href="#l2-ex1">مثال 1 (Mealy)</a></li><li><a href="#l2-sim1">شغّل مثال 1</a></li><li><a href="#l2-false">الـ False Outputs</a></li><li><a href="#l2-ex2">مثال 2 (Moore)</a></li><li><a href="#l2-ex3">مثال 3 (D FF)</a></li><li><a href="#l2-ex4">مثال 4 (T FF)</a></li><li><a href="#l2-quiz">اختبر نفسك</a></li></ol></li>
+    <li class="toc-lec sh"><a href="#s2" data-lec="s2"><span class="n">S2</span>Sheet 02</a>
+      <ol><li><a href="#s2-q1">Q1 · عداد بـ D</a></li><li><a href="#s2-q2">Q2 · Gray بـ x</a></li><li><a href="#s2-q3">Q3 · timing + false output</a></li><li><a href="#s2-q4">Q4 · timing chart</a></li><li><a href="#s2-q5">Q5 · عداد mixed</a></li><li><a href="#s2-q6">Q6 · output sequence</a></li></ol></li>
+    <li class="toc-lec"><a href="#l3" data-lec="l3"><span class="n">L3</span>Design</a>
+      <ol><li><a href="#l3-flow">الخطوات</a></li><li><a href="#l3-key">Analysis ضد Design</a></li><li><a href="#l3-ex1">مثال 1: عداد غريب</a></li><li><a href="#l3-ex2">مثال 2: Up/Down</a></li><li><a href="#l3-ex3">مثال 3: BCD ← XS3</a></li><li><a href="#l3-practice">تمرين</a></li><li><a href="#l3-quiz">اختبر نفسك</a></li></ol></li>
+    <li class="toc-lec"><a href="#l4" data-lec="l4"><span class="n">L4</span>State Graphs</a>
+      <ol><li><a href="#l4-idea">يعني إيه state؟</a></li><li><a href="#l4-groups">مجموعات بـ reset</a></li><li><a href="#l4-overlap">Overlap</a></li><li><a href="#l4-count">شروط وعدّ</a></li><li><a href="#l4-practice">ابنيها بنفسك</a></li><li><a href="#l4-quiz">اختبر نفسك</a></li></ol></li>
+    <li class="toc-lec sh"><a href="#s3" data-lec="s3"><span class="n">S3</span>Sheet 03</a>
+      <ol><li><a href="#s3-q1">Q1 · صفرين في آخر 3</a></li><li><a href="#s3-q2">Q2 · Parity checker</a></li><li><a href="#s3-q3">Q3 · Transition detector</a></li><li><a href="#s3-q4">Q4 · 00 أو 11 (Mealy)</a></li><li><a href="#s3-q5">Q5 · نفسها Moore</a></li><li><a href="#s3-q6">Q6 · حروف a و b</a></li></ol></li>
+  </ol>
+</aside>
+
+<main id="top">
+<div class="wrap">
+
+<section class="hero">
+  <div class="eyebrow">Digital Logic Circuits II · Prof. Dr. Magdy A. Ahmed · Alexandria University</div>
+  <h1>Digital Logic II</h1>
+  <svg class="trace-deco" viewBox="0 0 520 34" aria-hidden="true"><path d="M0 28 H40 V6 H100 V28 H130 V6 H230 V28 H300 V6 H340 V28 H520"/></svg>
+  <p class="sub">الخمس محاضرات مشروحين من الأول كأنك أول مرة تشوفهم: تريكات للحفظ، رسومات بتتحرك خطوة خطوة، دواير تشغّلها بإيدك، وجداول فاضية تملاها وتصحّحها لنفسك.</p>
+
+  <nav class="roadmap" aria-label="المحاضرات">
+    <a class="rm" href="#l0"><span class="k">L0</span><b>Gate Delay</b><span>البوابة بتتأخر قد إيه، وإزاي ترسم الـ timing.</span><span class="lvl">سهلة</span></a>
+    <a class="rm" href="#l1"><span class="k">L1</span><b>Flip-Flops</b><span>الذاكرة: SR و T و JK و D وجداولهم.</span><span class="lvl h">متوسطة</span></a>
+    <a class="rm" href="#l2"><span class="k">L2</span><b>Analysis</b><span>معاك دايرة: افهم هي بتعمل إيه.</span><span class="lvl h">متوسطة</span></a>
+    <a class="rm" href="#l3"><span class="k">L3</span><b>Design</b><span>العكس: من كلام لدايرة كاملة.</span><span class="lvl hh">تقيلة</span></a>
+    <a class="rm" href="#l4"><span class="k">L4</span><b>State Graphs</b><span>تطلّع الـ graph من وصف المسألة.</span><span class="lvl hh">الأتقل</span></a>
+  </nav>
+  <p class="chain"><b>الشيتات:</b> كل شيت محطوط بعد المحاضرة بتاعته على طول: <a href="#s1">Sheet 01</a> بعد L1، و<a href="#s2">Sheet 02</a> بعد L2، و<a href="#s3">Sheet 03</a> بعد L4. كل سؤال فيه تلميح، وحتة تجرب فيها بإيدك، والحل مستخبي لحد ما تفتحه.</p>
+  <p class="chain">المحاضرات دي سلسلة واحدة: <b>L1</b> بتديك الأدوات (الـ flip-flops) ← <b>L2</b> بتاخد دايرة جاهزة وتفهمها ← <b>L3</b> بتعمل العكس وتبني دايرة من الصفر ← <b>L4</b> هي أصعب خطوة في الـ Design: إنك تحوّل الكلام لـ state graph. ولو فهمت L1 كويس، الباقي هيبقى أسهل بكتير.</p>
+
+  <div class="how">
+    <div><b>اقرا وبعدين جرّب</b><p>كل جزء فيه شرح، وبعده حاجة تتلعب بيها. متعديش الحتة التفاعلية، هي اللي بتثبّت الفكرة.</p></div>
+    <div><b>حل قبل ما تشوف الحل</b><p>الجداول الفاضية والـ waveforms اللي بترسمها بنفسك فيها زرار «صحّحلي». استخدمه بعد ما تحاول.</p></div>
+    <div><b>علّم اللي خلّصته</b><p>في آخر كل محاضرة زرار تعلّم بيه إنك خلّصتها، والفهرس هيفتكرلك.</p></div>
+  </div>
+</section>
+
+<!-- ================= L0 ================= -->
+<section class="lec" id="l0">
+  <div class="lec-head">
+    <div class="eyebrow">Lecture 0 · 5 slides</div>
+    <h2>Gate Delay &amp; Timing Diagrams</h2>
+    <div class="ar">البوابة مش بترد في نفس اللحظة</div>
+  </div>
+
+  <h3 id="l0-idea">الفكرة ببساطة</h3>
+  <p>في Logic 1 كنا بنتعامل مع البوابة كأنها بتطلّع النتيجة في نفس اللحظة اللي الدخل اتغير فيها. في الحقيقة جوه البوابة ترانزستورات محتاجة وقت عشان تشحن وتفضي، فالخرج بيتغير <b>بعد</b> الدخل بشوية صغيرين (نانوثواني). الشوية دي اسمها <b>propagation delay</b>.</p>
+  <p>فكّر فيها زي زرار الأسانسير: بتدوس، والنور يولّع بعدها بلحظة. اللحظة دي هي الـ delay. ولو عندك سلسلة بوابات ورا بعض، كل واحدة بتضيف اللحظة بتاعتها، فالتأخير <b>بيتجمع</b>.</p>
+
+  <h3 id="l0-terms">tPLH و tPHL و tPD</h3>
+  <div class="tbl-row">
+    <div class="scrollx"><table class="tbl prose">
+      <thead><tr><th>الرمز</th><th>معناه</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">t<sub>PLH</sub></td><td>التأخير لما <b>الخرج</b> يطلع من Low لـ High</td></tr>
+        <tr><td class="mono">t<sub>PHL</sub></td><td>التأخير لما <b>الخرج</b> ينزل من High لـ Low</td></tr>
+        <tr><td class="mono">t<sub>PD</sub></td><td>المتوسط: <span class="m">(t<sub>PLH</sub> + t<sub>PHL</sub>) / 2</span></td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="note trap"><span class="tag">فخ</span><p>الـ L و H في <span class="m">t<sub>PLH</sub></span> بيوصفوا <b>الخرج</b> مش الدخل. في AND مثلًا، لما الدخل يطلع والخرج يطلع، ده t<sub>PLH</sub>. بس في NOT، الدخل لو طلع الخرج بينزل، يبقى ده <b>t<sub>PHL</sub></b>.</p></div>
+  <div class="panel"><div class="ph"><span class="kind">calculator</span><b>احسب الـ tPD</b></div><div class="calc" data-calc></div></div>
+  <p>في السلايد 2 بيوضّح الفرق: لما نفترض الـ delay واحد (t<sub>PD</sub>) بنزحزح كل تغيير بنفس المسافة. لما نكون دقيقين، الطلعة بتتأخر t<sub>PLH</sub> والنزلة بتتأخر t<sub>PHL</sub>، وممكن يبقوا مختلفين. في المسائل غالبًا بيدّيك رقم واحد لكل بوابة.</p>
+
+  <h3 id="l0-ex20">مثال السلايد 3 خطوة خطوة (كل بوابة 20ns)</h3>
+  <figure>
+    <svg class="cir" viewBox="0 0 300 110" width="300" aria-label="AND gate feeding NOR gate">
+      <path class="wire" d="M15 30 H70 M15 60 H70"/><text x="2" y="34">A</text><text x="2" y="64" class="s">B=1</text>
+      <path class="gate" d="M70 20 H95 A25 25 0 0 1 95 70 H70 Z"/>
+      <path class="wire" d="M120 45 H150 V58 H183"/><text x="128" y="40">G1</text>
+      <path class="wire" d="M15 85 H183"/><text x="2" y="98" class="s">C=0</text>
+      <path class="gate" d="M175 45 Q190 70 175 95 Q212 95 232 70 Q212 45 175 45 Z"/><circle class="gate" cx="237" cy="70" r="5"/>
+      <path class="wire" d="M242 70 H285"/><text x="262" y="64">G2</text>
+    </svg>
+  </figure>
+  <div class="walk">
+    <div class="step" data-title="بص على الثوابت الأول">
+      <h4>قبل ما ترسم أي حاجة: بسّط الدايرة</h4>
+      <p>B ثابتة على 1، و AND مع 1 بتعدّي الدخل التاني زي ما هو. يعني <span class="m">G1 = A</span> (بس متأخرة).</p>
+      <p>C ثابتة على 0، و NOR مع 0 بتبقى NOT. يعني <span class="m">G2 = <span class="ov">G1</span></span> (متأخرة برضو).</p>
+      <p>إذن الدايرة كلها = <b>NOT A متأخرة 40ns</b>. الملاحظة دي لوحدها بتحل المسألة.</p>
+      <div class="wavebox" dir="ltr" data-wave="ex20-1"></div>
+    </div>
+    <div class="step" data-title="ارسم G1">
+      <h4>G1 = A مزحزحة 20ns</h4>
+      <p>A طلعت عند 40 ← G1 تطلع عند <b>60</b>. A نزلت عند 100 ← G1 تنزل عند <b>120</b>. الحتة المظللة هي الـ 20ns اللي البوابة «بتفكر» فيها.</p>
+      <div class="wavebox" dir="ltr" data-wave="ex20-2"></div>
+    </div>
+    <div class="step" data-title="ارسم G2 من G1 مش من A">
+      <h4>G2 = عكس G1، ومزحزحة 20ns عن G1</h4>
+      <p>G1 طلعت عند 60 ← G2 <b>تنزل</b> عند 80. G1 نزلت عند 120 ← G2 <b>تطلع</b> عند 140.</p>
+      <p>لاحظ إن G2 بتبدأ بـ 1، لأن قبل أي تغيير G1 = 0 و NOT 0 = 1.</p>
+      <div class="wavebox" dir="ltr" data-wave="ex20-3"></div>
+    </div>
+    <div class="step" data-title="الخلاصة">
+      <h4>من A لـ G2 على طول</h4>
+      <p>التأخير الكلي = 20 + 20 = <b>40ns</b>: A طلعت عند 40، G2 نزلت عند 80. A نزلت عند 100، G2 طلعت عند 140. ده معنى إن الـ delay بيتجمع على المسار.</p>
+      <div class="wavebox" dir="ltr" data-wave="ex20-4"></div>
+    </div>
+  </div>
+
+  <h3 id="l0-lab">معمل الـ timing: دايرة السلايد 4 و 5</h3>
+  <p>الدايرة: <span class="m">Y = A + B</span> وبعدها <span class="m">Z = Y · C</span>. اختار التأخير 0ns هتطلع لك السلايد 4، و 5ns هتطلع لك السلايد 5. غيّر المدخلات بالضغط عليها، أو اختار «هحلّها أنا» وارسم Y و Z بنفسك.</p>
+  <figure>
+    <svg class="cir" viewBox="0 0 300 110" width="300" aria-label="OR gate feeding AND gate">
+      <path class="wire" d="M15 30 H75 M15 58 H75"/><text x="2" y="34">A</text><text x="2" y="62">B</text>
+      <path class="gate" d="M68 20 Q83 45 68 70 Q104 70 124 45 Q104 20 68 20 Z"/>
+      <path class="wire" d="M124 45 H150 V58 H180"/><text x="132" y="40">Y</text>
+      <path class="wire" d="M15 85 H180"/><text x="2" y="89">C</text>
+      <path class="gate" d="M180 45 H203 A26 26 0 0 1 203 97 H180 Z"/>
+      <path class="wire" d="M229 71 H285"/><text x="262" y="65">Z</text>
+    </svg>
+  </figure>
+  <div class="panel"><div class="ph"><span class="kind">interactive</span><b>OR ثم AND</b><span>اضغط على الـ waveforms نفسها</span></div><div data-gatelab></div></div>
+
+  <h3 id="l0-method">إزاي تحل أي مسألة timing diagram</h3>
+  <ol class="steps">
+    <li>اكتب معادلة كل نقطة في الدايرة: الخرج الوسيط (Y) والنهائي (Z).</li>
+    <li>ارسم خطوط رأسية عند كل لحظة أي دخل بيتغير فيها. الفترات بين الخطوط دي هي اللي هتشتغل عليها.</li>
+    <li>احسب خرج أول بوابة في كل فترة كأن مفيش delay (الـ «ideal»).</li>
+    <li>زحزح الإشارة دي يمين بمقدار delay البوابة.</li>
+    <li>للبوابة اللي بعدها: استخدم <b>الإشارة المزحزحة</b> مش المثالية، وكرر.</li>
+  </ol>
+  <div class="note tip"><span class="tag">تريكة: الـ controlling value</span><p>AND: أي 0 بيخلي الخرج 0. OR: أي 1 بيخلي الخرج 1. فابدأ بالفترات اللي فيها دخل «مسيطر»، هتعرف الخرج فيها من غير حساب. مثلًا في Z = Y·C، في أي فترة C=0 يبقى Z=0 أكيد (بعد الـ delay).</p></div>
+  <div class="note trap"><span class="tag">الفخ اللي في السلايد 4 و 5</span><p>قارن الحالتين في المعمل. بـ 0ns، Z فيها <b>نبضتين</b> (من 10 لـ 20، ومن 30 لـ 35). بـ 5ns، Z فيها <b>نبضة واحدة</b> بس (من 15 لـ 30)!</p><p>النبضة التانية اختفت ليه؟ لأن Y اتأخرت وطلعت عند 35، وفي نفس اللحظة دي C نزلت. يعني Y و C عمرهم ما بقوا 1 مع بعض في الفترة دي. <b>الـ delay مش بس بيزحزح الشكل، ده ممكن يغيّره.</b> متاخدش إجابة الـ 0ns وتزحزحها وخلاص.</p></div>
+
+  <h3 id="l0-quiz">اختبر نفسك</h3>
+  <div class="quiz" data-quiz="l0"></div>
+
+  <div class="note sheet"><span class="tag">الشيتات</span><p>مفيش شيت للمحاضرة دي لوحدها، بس فكرة الـ timing diagram هتقابلها في <a href="#s1-q1">Sheet 01</a> و <a href="#s2-q3">Sheet 02 Q3</a>.</p></div>
+  <p class="vids"><span class="muted">عايز تتفرج؟ (بحث يوتيوب)</span> <a href="https://www.youtube.com/results?search_query=propagation+delay+timing+diagram+logic+gates" target="_blank" rel="noopener">propagation delay timing diagram</a></p>
+  <div class="done-row"><button class="done-btn" type="button" data-lec="l0" aria-pressed="false">علّم إني خلّصت المحاضرة دي</button></div>
+</section>
+
+<!-- ================= L1 ================= -->
+<section class="lec" id="l1">
+  <div class="lec-head">
+    <div class="eyebrow">Lecture 1 · 20 slides</div>
+    <h2>Sequential Circuits &amp; Flip-Flops</h2>
+    <div class="ar">الدايرة اللي بتفتكر</div>
+  </div>
+
+  <h3 id="l1-seq">يعني إيه Sequential؟</h3>
+  <p>الدواير اللي أخدناها قبل كده (adders وmultiplexers) اسمها <b>combinational</b>: الخرج دالة في الدخل اللي موجود <b>دلوقتي</b> بس. تدّيها نفس الدخل، تطلّعلك نفس الخرج، مهما حصل قبل كده.</p>
+  <p>الـ <b>sequential</b> مختلفة: الخرج بيعتمد على الدخل دلوقتي <b>و</b>على اللي حصل قبل كده. عشان تفتكر اللي حصل، لازم يبقى فيها <b>memory</b>. الـ memory دي بتخزّن حاجة اسمها <b>الـ state</b>، وهي ملخص الماضي.</p>
+  <figure>
+    <svg class="cir" viewBox="0 0 440 210" width="440" aria-label="sequential circuit block diagram">
+      <rect class="box" x="150" y="20" width="140" height="100" rx="4"/><text x="220" y="65" text-anchor="middle">Combinational</text><text x="220" y="83" text-anchor="middle">Circuit</text>
+      <path class="wire" d="M60 45 H150 M60 65 H150"/><path class="arrowhead" d="M150 45 l-8 -4 v8 z M150 65 l-8 -4 v8 z"/><text x="20" y="50">x1</text><text x="20" y="70">xn</text><text x="5" y="30" class="s">inputs</text>
+      <path class="wire" d="M290 45 H380 M290 65 H380"/><path class="arrowhead" d="M380 45 l-8 -4 v8 z M380 65 l-8 -4 v8 z"/><text x="388" y="50">z1</text><text x="388" y="70">zm</text><text x="385" y="30" class="s">outputs</text>
+      <rect class="mem" x="180" y="150" width="80" height="34" rx="4"/><text x="220" y="172" text-anchor="middle">Memory</text>
+      <path class="wire" d="M290 105 H340 V167 H260"/><path class="arrowhead" d="M260 167 l8 -4 v8 z"/><text x="300" y="98" class="s">Y (next state)</text>
+      <path class="wire" d="M180 167 H100 V105 H150"/><path class="arrowhead" d="M150 105 l-8 -4 v8 z"/><text x="60" y="98" class="s">y (current state)</text>
+      <path class="wire" d="M220 205 V184"/><path class="arrowhead" d="M220 184 l-4 8 h8 z"/><text x="230" y="204" class="s">clock</text>
+    </svg>
+    <figcaption>الـ combinational بتاخد الدخل + الـ current state، وبتطلّع الخرج + الـ next state. الـ memory بتخزّن الـ next state عشان يبقى current state في النبضة الجاية.</figcaption>
+  </figure>
+  <div class="note tip"><span class="tag">رقم تحفظه</span><p>كل flip-flop بيخزّن bit واحد. لو عندك <span class="m">k</span> flip-flops يبقى عندك لحد <span class="m">2<sup>k</sup></span> state. 2 FFs ← 4 states، 3 FFs ← 8 states.</p></div>
+
+  <h3 id="l1-types">Synchronous و Asynchronous</h3>
+  <p><b>Synchronous</b>: الـ memory مبتتغيرش غير مع نبضة الـ clock. كل الدايرة ماشية على «ضربة» واحدة زي الفرقة الموسيقية مع المايسترو. <b>Asynchronous</b>: مفيش clock، الـ state بتتغير أول ما الدخل يتغير.</p>
+  <div class="scrollx"><table class="tbl prose">
+    <thead><tr><th></th><th>Synchronous</th><th>Asynchronous</th></tr></thead>
+    <tbody>
+      <tr><th>التصميم</th><td>سهل</td><td>صعب</td></tr>
+      <tr><th>الـ memory</th><td>Clocked flip-flop</td><td>Unclocked flip-flop أو time-delay element</td></tr>
+      <tr><th>السرعة</th><td>أبطأ، عشان الـ clock نفسه محتاج وقت يوصل لكل حتة</td><td>أسرع، مفيش انتظار للـ clock</td></tr>
+      <tr><th>الاعتمادية</th><td>الـ states دايمًا متوقعة</td><td>ممكن تدخل state غلط بسبب الـ <b>race condition</b></td></tr>
+    </tbody></table></div>
+  <div class="note deep"><span class="tag">يعني إيه race condition؟</span><p>تخيّل دخلين المفروض يتغيروا مع بعض من 00 لـ 11. في الحقيقة واحد وصل قبل التاني بـ 2ns، فالدايرة شافت لحظة 01 أو 10 مكانتش في الحسبان. الدايرة الـ async بترد على طول، فممكن تروح state غلط من اللحظة دي. الـ synchronous مبتبصّش على الدخل غير عند الـ clock edge، ووقتها الدخلين يكونوا استقروا.</p></div>
+
+  <h3 id="l1-mm">Mealy و Moore</h3>
+  <div class="figrow">
+    <figure><svg class="cir" viewBox="0 -14 360 120" width="360" aria-label="Moore block diagram">
+      <rect class="box" x="45" y="15" width="80" height="50" rx="4"/><text x="85" y="37" text-anchor="middle" class="s">next-state</text><text x="85" y="52" text-anchor="middle" class="s">logic</text>
+      <rect class="mem" x="155" y="15" width="60" height="50" rx="4"/><text x="185" y="45" text-anchor="middle" class="s">Memory</text>
+      <rect class="box" x="245" y="15" width="80" height="50" rx="4"/><text x="285" y="37" text-anchor="middle" class="s">output</text><text x="285" y="52" text-anchor="middle" class="s">logic</text>
+      <path class="wire" d="M8 40 H45 M125 40 H155 M215 40 H245 M325 40 H355"/><text x="0" y="33">X</text><text x="340" y="33">Z</text>
+      <path class="wire" d="M230 40 V90 H85 V65"/><circle class="dot" cx="230" cy="40" r="3"/>
+      <path class="wire" d="M185 -10 V15"/><text x="192" y="-2" class="s">CLK</text>
+    </svg><figcaption><b>Moore</b>: الـ output logic داخلها الـ state بس.</figcaption></figure>
+    <figure><svg class="cir" viewBox="0 -14 360 120" width="360" aria-label="Mealy block diagram">
+      <rect class="box" x="45" y="15" width="80" height="50" rx="4"/><text x="85" y="37" text-anchor="middle" class="s">next-state</text><text x="85" y="52" text-anchor="middle" class="s">logic</text>
+      <rect class="mem" x="155" y="15" width="60" height="50" rx="4"/><text x="185" y="45" text-anchor="middle" class="s">Memory</text>
+      <rect class="box" x="245" y="15" width="80" height="50" rx="4"/><text x="285" y="37" text-anchor="middle" class="s">output</text><text x="285" y="52" text-anchor="middle" class="s">logic</text>
+      <path class="wire" d="M8 40 H45 M125 40 H155 M215 40 H245 M325 40 H355"/><text x="0" y="33">X</text><text x="340" y="33">Z</text>
+      <path class="wire" d="M230 40 V90 H85 V65"/><circle class="dot" cx="230" cy="40" r="3"/>
+      <path class="wire hot" d="M25 40 V102 H300 V65"/><circle class="dot" cx="25" cy="40" r="3"/>
+      <path class="wire" d="M185 -10 V15"/><text x="192" y="-2" class="s">CLK</text>
+    </svg><figcaption><b>Mealy</b>: الدخل X رايح للـ output logic كمان (الخط الأحمر).</figcaption></figure>
+  </div>
+  <div class="scrollx"><table class="tbl prose">
+    <thead><tr><th></th><th>Moore</th><th>Mealy</th></tr></thead>
+    <tbody>
+      <tr><th>الخرج بيعتمد على</th><td>الـ present state بس</td><td>الـ present state <b>و</b> الدخل دلوقتي</td></tr>
+      <tr><th>في الـ state graph</th><td>الخرج مكتوب <b>جوه</b> الدايرة: <span class="m">A/0</span></td><td>الخرج مكتوب <b>على السهم</b>: <span class="m">X/Z</span> زي <span class="m">1/0</span></td></tr>
+      <tr><th>في الـ state table</th><td>عمود Z واحد</td><td>عمودين Z: واحد لـ X=0 وواحد لـ X=1</td></tr>
+      <tr><th>توقيت الخرج</th><td>بيتغير مع الـ clock بس، ومتأخر نبضة</td><td>بيتغير أول ما الدخل يتغير</td></tr>
+      <tr><th>عدد الـ states</th><td>غالبًا أكتر</td><td>غالبًا أقل</td></tr>
+      <tr><th>false outputs</th><td>مفيش</td><td>ممكن (هنشوفها في L2)</td></tr>
+    </tbody></table></div>
+  <div class="note tip"><span class="tag">تريكة للحفظ</span><p><b>Mealy = Mixed</b>: الخرج خليط من الـ state والدخل، فبيتكتب على السهم لأن السهم هو اللي فيه الدخل. <b>Moore</b>: الخرج ملك الحالة نفسها، فبيتكتب جواها. وعشان تعرف دايرة نوعها إيه: بص على معادلة Z. لو فيها X يبقى Mealy.</p></div>
+
+  <h3 id="l1-clock">الـ Clock: Edge ولا Level؟</h3>
+  <p>الـ clock إشارة مربعة بتتكرر. السؤال: الـ flip-flop بيتغير إمتى بالظبط؟</p>
+  <div class="figrow">
+    <figure><div class="wavebox" dir="ltr" data-wave="clk-edge"></div><figcaption><b>Edge-triggered</b>: بيتغير عند لحظة الطلعة (rising، الأحمر) أو لحظة النزلة (falling، الأزرق) بس.</figcaption></figure>
+    <figure><div class="wavebox" dir="ltr" data-wave="clk-level"></div><figcaption><b>Level-triggered</b>: بيتغير طول ما الـ clock High (الأزرق) أو Low (الأحمر).</figcaption></figure>
+  </div>
+  <figure>
+    <svg class="cir" viewBox="0 0 380 90" width="380" aria-label="rising and falling edge flip-flop symbols">
+      <rect class="box" x="40" y="10" width="90" height="70" rx="3"/><path class="wire" d="M10 55 H40"/><path class="gate" d="M40 47 L52 55 L40 63"/><text x="58" y="60">CK</text><text x="140" y="50" class="s">rising edge</text>
+      <rect class="box" x="230" y="10" width="90" height="70" rx="3"/><path class="wire" d="M200 55 H222"/><circle class="gate" cx="226" cy="55" r="4"/><path class="gate" d="M230 47 L242 55 L230 63"/><text x="248" y="60">CK</text><text x="325" y="50" class="s">falling</text>
+    </svg>
+    <figcaption>المثلث عند CK معناه edge-triggered. لو قبله bubble صغيرة يبقى بيشتغل على الـ <b>falling edge</b>. ركّز: أغلب أمثلة L1 و L2 فيها bubble، يعني بنقرا عند النزلة.</figcaption>
+  </figure>
+
+  <h3 id="l1-ff">الأربع أنواع</h3>
+  <p>كل flip-flop بيخزّن bit واحد (Q)، ومعاه Q̄ (العكس). الفرق بينهم في الدخل وإزاي بيأثر على Q. بنوصف كل واحد بتلات حاجات: <b>truth table</b> (معايا الدخل وQ، Q⁺ هيبقى إيه؟)، <b>characteristic equation</b> (نفس الكلام كمعادلة)، و<b>excitation table</b> (السؤال العكسي، تحت).</p>
+  <div class="ff-cards">
+    <div class="ffc"><h4>SR (Set / Reset)</h4><p class="one">S=1 ← Q=1. R=1 ← Q=0. الاتنين 0 ← احتفظ. الاتنين 1 ← <b>ممنوع</b>.</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>S</th><th>R</th><th>Q⁺</th><th></th></tr></thead><tbody><tr><td>0</td><td>0</td><td class="res">Q</td><td><small>hold</small></td></tr><tr><td>0</td><td>1</td><td class="res">0</td><td><small>reset</small></td></tr><tr><td>1</td><td>0</td><td class="res">1</td><td><small>set</small></td></tr><tr><td>1</td><td>1</td><td class="res">X</td><td><small>ممنوع</small></td></tr></tbody></table></div>
+      <div class="eqb">Q⁺ = S + <span class="ov">R</span>·Q   <span class="c">(بشرط SR = 0)</span></div>
+      <p class="small muted">من جوه: اتنين NOR متوصلين ببعض (cross-coupled). لو S=R=1 الاتنين بيطلّعوا 0، يعني Q و Q̄ الاتنين 0، وده مش منطقي.</p></div>
+    <div class="ffc"><h4>T (Toggle)</h4><p class="one">T=0 ← احتفظ. T=1 ← اقلب.</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>T</th><th>Q⁺</th><th></th></tr></thead><tbody><tr><td>0</td><td class="res">Q</td><td><small>hold</small></td></tr><tr><td>1</td><td class="res"><span class="ov">Q</span></td><td><small>toggle</small></td></tr></tbody></table></div>
+      <div class="eqb">Q⁺ = <span class="ov">T</span>Q + T<span class="ov">Q</span> = T ⊕ Q</div>
+      <p class="small muted">ده قلب أي عداد: الـ bit اللي المفروض يتغير، حطله T=1.</p></div>
+    <div class="ffc"><h4>JK</h4><p class="one">زي SR بالظبط، بس الحالة الممنوعة (11) بقت <b>toggle</b>.</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>J</th><th>K</th><th>Q⁺</th><th></th></tr></thead><tbody><tr><td>0</td><td>0</td><td class="res">Q</td><td><small>hold</small></td></tr><tr><td>0</td><td>1</td><td class="res">0</td><td><small>reset</small></td></tr><tr><td>1</td><td>0</td><td class="res">1</td><td><small>set</small></td></tr><tr><td>1</td><td>1</td><td class="res"><span class="ov">Q</span></td><td><small>toggle</small></td></tr></tbody></table></div>
+      <div class="eqb">Q⁺ = J·<span class="ov">Q</span> + <span class="ov">K</span>·Q</div>
+      <p class="small muted">احفظ المعادلة دي كويس، هتعوّض فيها في كل مسألة Analysis.</p></div>
+    <div class="ffc"><h4>D (Delay / Data)</h4><p class="one">اللي على D يتخزّن مع النبضة. خلاص.</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>D</th><th>Q⁺</th></tr></thead><tbody><tr><td>0</td><td class="res">0</td></tr><tr><td>1</td><td class="res">1</td></tr></tbody></table></div>
+      <div class="eqb">Q⁺ = D</div>
+      <p class="small muted">اسمه Delay لأن الخرج = الدخل متأخر نبضة واحدة.</p></div>
+  </div>
+  <div class="note tip"><span class="tag">تريكة: JK = SR + T</span><p>J زي S (Set)، و K زي R (Reset، افتكرها K = Kill). ولما الاتنين 1 بيعمل زي الـ T ويقلب. لو حفظت SR و T، حفظت JK ببلاش.</p></div>
+  <div class="note deep"><span class="tag">المعادلة جت منين؟</span><p>في السلايد 11 و 15 الدكتور طلّع الـ characteristic equation من الـ truth table بـ K-map. حط كل الحالات اللي Q⁺=1 فيها، والممنوعة X، وجمّع. شوف المجموعات (حط الماوس على أي term):</p></div>
+  <div class="kmaps" data-kmaps="sr"></div>
+  <div class="kmaps" data-kmaps="jk"></div>
+
+  <h3 id="l1-play">جرّبهم بإيدك</h3>
+  <div class="panel"><div class="ph"><span class="kind">playground</span><b>Flip-Flop Playground</b><span>غيّر الدخل، واضغط نبضة الـ clock، وشوف Q</span></div><div data-ffplay></div></div>
+
+  <h3 id="l1-exc">الـ Excitation Table: السؤال بالعكس</h3>
+  <p>ده أهم جزء في المحاضرة، لأن L3 كلها قايمة عليه. خد بالك من الفرق:</p>
+  <ul>
+    <li><b>Truth table</b>: معايا الدخل وQ، أنا <b>هروح فين</b>؟ ← ده اللي بنستخدمه في الـ Analysis.</li>
+    <li><b>Excitation table</b>: أنا عارف عايز أروح فين (من Q لـ Q⁺)، <b>أدّي الـ flip-flop إيه</b>؟ ← ده اللي بنستخدمه في الـ Design.</li>
+  </ul>
+  <div class="note deep"><span class="tag">نطلّع جدول الـ JK بالمنطق</span>
+    <p><b>0 ← 0</b>: عايز Q تفضل 0. ينفع hold (J=0,K=0) أو reset (J=0,K=1). في الحالتين J=0، و K مش فارقة. يبقى <span class="m">J=0, K=X</span>.</p>
+    <p><b>0 ← 1</b>: عايز Q تطلع 1. ينفع set (J=1,K=0) أو toggle (J=1,K=1). يبقى <span class="m">J=1, K=X</span>.</p>
+    <p><b>1 ← 0</b>: عايز Q تنزل. ينفع reset (J=0,K=1) أو toggle (J=1,K=1). يبقى <span class="m">J=X, K=1</span>.</p>
+    <p><b>1 ← 1</b>: عايز Q تفضل 1. ينفع hold (J=0,K=0) أو set (J=1,K=0). يبقى <span class="m">J=X, K=0</span>.</p>
+    <p>الـ X دي هدية: معناها «حط اللي يريحك»، وفي الـ K-map بتخليك تعمل مجموعات أكبر ومعادلات أصغر.</p></div>
+  <div class="note tip"><span class="tag">تريكة حفظ الـ excitation</span>
+    <p><b>JK</b>: لو Q=0 يبقى J = Q⁺ و K = X. لو Q=1 يبقى J = X و K = عكس Q⁺. (يعني 0X، 1X، X1، X0 بالترتيب).</p>
+    <p><b>T</b>: T = Q ⊕ Q⁺. يعني «اتغير؟ حط 1».</p>
+    <p><b>D</b>: D = Q⁺. مفيش أي تفكير.</p>
+    <p><b>SR</b>: زي JK، بس في 0←1 لازم R=0 (مينفعش toggle)، وفي 1←0 لازم S=0.</p></div>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>املا الـ excitation table للأربعة مع بعض</b></div><div data-fill="exc-all"></div></div>
+
+  <h3 id="l1-timing">Timing diagrams للـ flip-flops</h3>
+  <p><b>SR من غير clock</b> (السلايد 12): بيرد على طول بعد الـ propagation delay. S طلعت ← Q تطلع بعد شوية. R طلعت ← Q تنزل بعد شوية.</p>
+  <div class="wavebox" dir="ltr" data-wave="sr-timing"></div>
+  <p><b>T و JK على الـ falling edge</b> (السلايد 14 و 16). الطريقة:</p>
+  <ol class="steps">
+    <li>علّم كل falling edge بسهم (لأن فيه bubble عند CK).</li>
+    <li>عند كل سهم، بص على قيمة الدخل <b>قبل</b> السهم على طول.</li>
+    <li>طبّق الـ truth table على Q اللي كانت قبل السهم.</li>
+    <li>بين السهمين Q ثابتة، مهما الدخل اتغيّر في النص.</li>
+  </ol>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>T flip-flop (السلايد 14)</b></div><div data-edgeex="T"></div></div>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>JK flip-flop (السلايد 16)</b></div><div data-edgeex="JK"></div></div>
+  <div class="note trap"><span class="tag">فخ</span><p>في JK عند e3 و e4، J=K=1، يعني toggle. ناس كتير بتكتب Q=1 مرتين لأنهم بيبصّوا على J بس. الـ toggle بيقلب كل مرة: 1 ثم 0.</p></div>
+
+  <h3 id="l1-pc">Preset و Clear</h3>
+  <p>دخلين زيادة في الـ JK (السلايد 17) بيتحكموا في Q <b>مباشرة</b> من غير ما يستنوا الـ clock:</p>
+  <ul>
+    <li><b>Preset</b>: يحط Q = 1 فورًا.</li>
+    <li><b>Clear</b>: يحط Q = 0 فورًا.</li>
+  </ul>
+  <p>الـ bubble عندهم معناها <b>active-low</b>: بيشتغلوا لما تحط عليهم 0، ولما يبقوا 1 الـ FF بيشتغل عادي. بنستخدمهم عشان نبدأ الدايرة من state معروفة (زي reset أول ما الجهاز يشتغل).</p>
+
+  <h3 id="l1-conv">التحويل من flip-flop لنوع تاني</h3>
+  <p>السؤال: عندي FF من نوع معيّن، وعايزه «يتصرف» كأنه نوع تاني. الطريقة ثابتة، 4 خطوات:</p>
+  <ol class="steps">
+    <li>اكتب truth table للـ FF <b>المطلوب</b>: دخله + Q ← Q⁺.</li>
+    <li>جنب كل صف، استخدم <b>excitation table</b> بتاع الـ FF <b>اللي معاك</b> عشان تعرف دخله يبقى إيه.</li>
+    <li>طلّع معادلة دخل الـ FF اللي معاك بـ K-map.</li>
+    <li>ارسم: البوابات دي بتتحط قبل دخل الـ FF.</li>
+  </ol>
+  <div class="walk">
+    <div class="step" data-title="JK ← D (السلايد 19)">
+      <h4>عايز D، ومعايا JK</h4>
+      <p>نكتب جدول D، وجنبه excitation الـ JK لكل انتقال Q ← Q⁺:</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>D</th><th>Q</th><th class="res">Q⁺</th><th>J</th><th>K</th></tr></thead><tbody>
+        <tr><td>0</td><td>0</td><td class="res">0</td><td>0</td><td>X</td></tr><tr><td>0</td><td>1</td><td class="res">0</td><td>X</td><td>1</td></tr><tr><td>1</td><td>0</td><td class="res">1</td><td>1</td><td>X</td></tr><tr><td>1</td><td>1</td><td class="res">1</td><td>X</td><td>0</td></tr></tbody></table></div>
+      <p>عمود J: لما D=0 ← 0 أو X، لما D=1 ← 1 أو X. يعني <span class="m">J = D</span>. عمود K: لما D=0 ← X أو 1، لما D=1 ← X أو 0. يعني <span class="m">K = <span class="ov">D</span></span>.</p>
+      <p>الدايرة: D داخلة على J على طول، وعلى K من خلال inverter.</p>
+    </div>
+    <div class="step" data-title="T ← JK (السلايد 20)">
+      <h4>عايز JK، ومعايا T</h4>
+      <p>نكتب جدول JK (8 صفوف)، وجنبه T = Q ⊕ Q⁺ (excitation الـ T):</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>J</th><th>K</th><th>Q</th><th class="res">Q⁺</th><th>T</th></tr></thead><tbody>
+        <tr><td>0</td><td>0</td><td>0</td><td class="res">0</td><td>0</td></tr><tr><td>0</td><td>0</td><td>1</td><td class="res">1</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td class="res">0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td><td class="res">0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>0</td><td class="res">1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td class="res">1</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td><td class="res">1</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td class="res">0</td><td>1</td></tr></tbody></table></div>
+      <p>الـ K-map بتدّيك <span class="m">T = J<span class="ov">Q</span> + KQ</span>. منطقيًا: الـ T لازم يقلب لما J=1 والـ Q لسه 0، أو لما K=1 والـ Q لسه 1.</p>
+      <p>الدايرة: اتنين AND (J مع Q̄، و K مع Q) داخلين على OR، والـ OR داخلة على T. وQ و Q̄ راجعين feedback للـ AND.</p>
+    </div>
+  </div>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>تمرين زيادة: اعمل T باستخدام D</b><span>مش في السلايدز، بس نفس الطريقة</span></div><div data-fill="conv-dt"></div></div>
+
+  <h3 id="l1-quiz">اختبر نفسك</h3>
+  <div class="quiz" data-quiz="l1"></div>
+  <div class="note sheet"><span class="tag">الشيت</span><p><a href="#s1">Sheet 01</a> هو اللي بعد المحاضرة دي على طول.</p></div>
+  <p class="vids"><span class="muted">عايز تتفرج؟ (بحث يوتيوب)</span> <a href="https://www.youtube.com/results?search_query=JK+T+D+SR+flip+flop+excitation+table" target="_blank" rel="noopener">flip-flops + excitation table</a> <a href="https://www.youtube.com/results?search_query=flip+flop+conversion+JK+to+D" target="_blank" rel="noopener">flip-flop conversion</a></p>
+  <div class="done-row"><button class="done-btn" type="button" data-lec="l1" aria-pressed="false">علّم إني خلّصت المحاضرة دي</button></div>
+</section>
+
+<!-- ================= SHEET 01 ================= -->
+<section class="lec sheet-sec" id="s1">
+  <div class="lec-head">
+    <div class="eyebrow">Sheet 01 · CSE236N · بعد L1</div>
+    <h2>Introduction to Sequential Logic Elements</h2>
+    <div class="ar">8 أسئلة على الـ flip-flops: timing، معادلات، وتحويل</div>
+  </div>
+  <div class="policy"><p><b>قبل ما تبدأ:</b> الشيت بيتسلّم بخط إيدك ولوحدك، والنسخ عليه عقوبة. فاستخدم الجزء ده عشان تفهم الطريقة وتتأكد من إجابتك. حاول الأول، وبعدين افتح الحل وقارن.</p></div>
+
+  <article class="sq" id="s1-q1">
+    <div class="sq-h"><span class="qb">Q1</span><h3>JK على الـ negative edge والـ positive edge</h3><span class="topic">L1 · edge timing</span></div>
+    <p class="en">For the input sequence in the figure, draw the output waveform of: (a) a negative edge-triggered JK flip-flop, (b) a positive edge-triggered JK flip-flop.</p>
+    <p>نفس الـ CK و J و K، وعايز Q مرتين: مرة الـ FF بيقرا عند النزلة، ومرة عند الطلعة. افترض Q تبدأ 0.</p>
+    <details class="hint"><summary>تلميح: أبدأ إزاي؟</summary><div>
+      <p>علّم الحواف الأول. في (a) بص على كل <b>نزلة</b> بس، وفي (b) على كل <b>طلعة</b> بس. عند كل حافة اقرا J و K قبلها بشعرة، وطبّق: 00 hold، 01 reset، 10 set، 11 toggle.</p>
+      <p>خلي بالك من النبضة الصغيرة في K قرب الآخر. هل فيه حافة جواها؟</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>(a) Negative edge</b><span>الأسهم = النزلات</span></div><div data-draw="s1q1a"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>(b) Positive edge</b><span>الأسهم = الطلعات</span></div><div data-draw="s1q1b"></div></div>
+    <details class="sol"><summary>الحل خطوة بخطوة</summary><div>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>حافة</th><th>J</th><th>K</th><th>العملية</th><th class="res">Q بعدها</th></tr></thead><tbody>
+        <tr><th colspan="5">(a) النزلات</th></tr>
+        <tr><td>↓1</td><td>1</td><td>0</td><td>set</td><td class="res">1</td></tr><tr><td>↓2</td><td>0</td><td>0</td><td>hold</td><td class="res">1</td></tr><tr><td>↓3</td><td>1</td><td>1</td><td>toggle</td><td class="res">0</td></tr><tr><td>↓4</td><td>1</td><td>0</td><td>set</td><td class="res">1</td></tr><tr><td>↓5</td><td>0</td><td>1</td><td>reset</td><td class="res">0</td></tr>
+        <tr><th colspan="5">(b) الطلعات</th></tr>
+        <tr><td>↑1</td><td>1</td><td>0</td><td>set</td><td class="res">1</td></tr><tr><td>↑2</td><td>0</td><td>1</td><td>reset</td><td class="res">0</td></tr><tr><td>↑3</td><td>0</td><td>1</td><td>reset</td><td class="res">0</td></tr><tr><td>↑4</td><td>1</td><td>0</td><td>set</td><td class="res">1</td></tr><tr><td>↑5</td><td>0</td><td>1</td><td>reset</td><td class="res">0</td></tr>
+      </tbody></table></div>
+      <p>النبضة الصغيرة في K (بين ↑4 و ↓4) مفيهاش أي حافة، فمبتأثرش في الحالتين. ده بالظبط الفخ اللي السؤال عامله: الـ edge-triggered FF مبيشوفش أي حاجة بين الحواف.</p>
+      <p>والفرق بين (a) و (b) كله من إن J و K بيتغيروا في نص الـ high أو نص الـ low، فكل نوع بيشوف قيم مختلفة.</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q2">
+    <div class="sq-h"><span class="qb">Q2</span><h3>Edge-triggered ضد Level-triggered</h3><span class="topic">L1 · clock</span></div>
+    <p class="en">Sketch the output waveforms at Q<sub>A</sub> and Q<sub>B</sub> given clk and x. Initial state of both is 0; neglect delays.</p>
+    <img class="figimg" src="fig/s1q2.png" width="355" height="407" alt="x و clk داخلين على D flip-flop بيشتغل على الـ negative edge (QA) وعلى D latch بيشتغل على الـ positive level (QB)" style="max-width:240px">
+    <p>نفس الدخل x داخل على حاجتين: <b>QA</b> = D flip-flop على النزلة (فيه bubble)، و<b>QB</b> = D latch على الـ high level (الـ C).</p>
+    <details class="hint"><summary>تلميح: الفرق بين الاتنين</summary><div>
+      <p><b>Edge</b>: بياخد صورة واحدة من x لحظة النزلة، وبعدين يقفل لحد النزلة الجاية.</p>
+      <p><b>Level (latch)</b>: طول ما clk = 1 الباب مفتوح، QB = x وبيتبعه في كل تغيير. أول ما clk يبقى 0 الباب يتقفل، و QB يفضل على آخر قيمة شافها.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>ارسم QA و QB</b><span>الأسهم = نزلات clk</span></div><div data-draw="s1q2"></div></div>
+    <details class="sol"><summary>الحل خطوة بخطوة</summary><div>
+      <p><b>QA</b>: فيه نزلتين بس. عند الأولى x = 0، فـ QA تفضل 0. عند التانية x كان لسه طالع 1، فـ QA تطلع 1 وتفضل.</p>
+      <p><b>QB</b>: في أول فترة high الـ latch شفاف، فـ QB نسخة من x (1 ثم 0 ثم 1 ثم 0). لما clk ينزل، x كان 0، فـ QB يتقفل على 0 طول الفترة الـ low حتى لو x اتغير. في الفترة الـ high التانية يرجع ينسخ x، وآخرها x = 1 فيتقفل على 1.</p>
+      <p>الدرس: الـ latch ممكن يتغير كذا مرة في نبضة واحدة، والـ flip-flop مرة واحدة بالكتير.</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q3">
+    <div class="sq-h"><span class="qb">Q3</span><h3>طلّع معادلة الـ next state من الدايرة</h3><span class="topic">L1/L2 · characteristic eq.</span></div>
+    <p class="en">Derive the characteristic equation (next-state equation) for the following circuit.</p>
+    <img class="figimg" src="fig/s1q3.jpg" width="849" height="315" alt="x و y داخلين على XOR، وخرجها داخل على XOR تانية معاها A، وخرجها داخل على D flip-flop خرجه A" style="max-width:440px">
+    <details class="hint"><summary>تلميح</summary><div><p>البوابتين XOR (شوف الخط المزدوج ورا كل واحدة). ومع D: <span class="m">A⁺ = D</span>. يعني امشي بالسلك من الأول لحد D.</p></div></details>
+    <details class="sol"><summary>الحل</summary><div>
+      <div class="eqb">D = (x ⊕ y) ⊕ A<br>A⁺ = D = <span class="hl">A ⊕ x ⊕ y</span></div>
+      <p>بالكلام: A بيتقلب لما x و y مختلفين، ويفضل زي ما هو لما يكونوا زي بعض. يعني الدايرة دي هي <b>T flip-flop</b> متعمول من D، و <span class="m">T = x ⊕ y</span>.</p>
+      <p>لو الدكتور عايزها SOP: <span class="m">A⁺ = <span class="ov">A</span><span class="ov">x</span>y + <span class="ov">A</span>x<span class="ov">y</span> + A<span class="ov">x</span><span class="ov">y</span> + Axy</span> (الـ 1 لما عدد الـ 1 في A و x و y فردي).</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q4">
+    <div class="sq-h"><span class="qb">Q4</span><h3>JK باستخدام T وشوية بوابات</h3><span class="topic">L1 · conversion</span></div>
+    <p class="en">Implement a JK flip-flop with a T flip-flop and a minimal AND-OR-NOT network. Complements of J, K and Q are available.</p>
+    <p>ده نفس مثال السلايد 20 بالظبط. لو مش فاكره، <a href="#l1-conv">ارجعله</a> وحاول قبل ما تفتح الحل.</p>
+    <details class="sol"><summary>الحل</summary><div>
+      <p>من جدول JK وجنبه <span class="m">T = Q ⊕ Q⁺</span>، الـ K-map بتدّي:</p>
+      <div class="eqb">T = J·<span class="ov">Q</span> + K·Q</div>
+      <p>اتنين AND وواحدة OR. ومش محتاجين NOT لأن Q̄ موجودة.</p>
+      <figure><svg class="cir" viewBox="0 0 360 125" width="360" aria-label="J و Q bar داخلين على AND، و K و Q على AND، والاتنين على OR داخلة على T">
+        <path class="wire" d="M18 25 H60 M18 45 H60 M18 85 H60 M18 105 H60"/>
+        <text x="2" y="29">J</text><text x="2" y="49">Q̄</text><text x="2" y="89">K</text><text x="2" y="109">Q</text>
+        <path class="gate" d="M60 15 H80 A20 20 0 0 1 80 55 H60 Z"/><path class="gate" d="M60 75 H80 A20 20 0 0 1 80 115 H60 Z"/>
+        <path class="wire" d="M100 35 H128 V52 H158 M100 95 H128 V78 H158"/>
+        <path class="gate" d="M150 40 Q165 65 150 90 Q185 90 205 65 Q185 40 150 40 Z"/>
+        <path class="wire" d="M205 65 H245"/>
+        <rect class="box" x="245" y="35" width="80" height="70" rx="3"/><text x="252" y="70">T</text><path class="gate" d="M245 82 L256 90 L245 98"/><text x="303" y="56">Q</text><text x="303" y="96">Q̄</text>
+        <path class="wire" d="M325 52 H352 M325 92 H352"/>
+      </svg></figure></div></details>
+  </article>
+
+  <article class="sq" id="s1-q5">
+    <div class="sq-h"><span class="qb">Q5</span><h3>MN flip-flop</h3><span class="topic">L1 · new FF + conversion</span></div>
+    <p class="en">MN flip-flop: if M=1 it complements the current state; if M=0 the next state equals N. (a) Characteristic table &amp; equation. (b) Convert a JK flip-flop into an MN flip-flop.</p>
+    <p>نوع جديد اخترعه السؤال. متتخضّش: الطريقة هي هي بتاعة أي FF في L1.</p>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>(a) الـ characteristic table</b></div><div data-fill="s1q5-char"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>(b) JK اللي يعمل MN</b><span>Q⁺ متكتوبة، طلّع J و K</span></div><div data-fill="s1q5-jk"></div></div>
+    <details class="sol"><summary>الـ K-maps والمعادلات</summary><div>
+      <div class="kmaps" data-kmaps="s1q5"></div>
+      <p>(a) <span class="m">Q⁺ = <span class="ov">M</span>·N + M·<span class="ov">Q</span></span>. (b) <span class="m">J = M + N</span> و <span class="m">K = M + <span class="ov">N</span></span>: بوابتين OR وinverter واحد على N، قبل J و K.</p>
+      <p>تأكد بالمنطق: لو M=1 يبقى J=K=1 ← toggle ✓. لو M=0 يبقى J = N و K = N̄، وده بالظبط D flip-flop بـ D=N ✓.</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q6">
+    <div class="sq-h"><span class="qb">Q6</span><h3>JK مع PRE و CLR</h3><span class="topic">L1 · async inputs</span></div>
+    <p class="en">Determine the Q waveform relative to the clock if the signals shown are applied to the J-K flip-flop. Q is initially LOW.</p>
+    <img class="figimg" src="fig/s1q6.png" width="928" height="348" alt="CLK بـ 6 نبضات، J و K نفس الشكل، PRE بار بيبقى 0 في النبضة التالتة، CLR بار بيبقى 0 في النبضة الخامسة" style="max-width:560px">
+    <details class="hint"><summary>تلميح</summary><div>
+      <p>الـ C مفيهاش bubble، يعني <b>positive edge</b>. و PRE̅ و CLR̅ عليهم bubble، يعني <b>active-low</b> وغير متزامنين: أول ما واحد فيهم يبقى 0 بيكسب على الـ clock و J و K فورًا.</p>
+      <p>ولاحظ إن J و K نفس الشكل بالظبط، يعني الـ FF هنا بيتصرف زي T.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>ارسم Q</b><span>الأسهم = طلعات CLK</span></div><div data-draw="s1q6"></div></div>
+    <details class="sol"><summary>الحل خطوة بخطوة</summary><div>
+      <ol class="steps">
+        <li>↑1: J=K=1 ← toggle، Q: 0 ← 1.</li>
+        <li>↑2: J=K=0 ← hold، Q = 1.</li>
+        <li>PRE̅ نزل 0 قبل ↑3: بيحط Q = 1 (هي أصلًا 1). وعند ↑3، J=K=1 كان المفروض يقلب، بس الـ preset شغال فبيمنعه. Q = 1.</li>
+        <li>↑4: J=K=0 ← hold، Q = 1.</li>
+        <li>CLR̅ نزل 0 قبل ↑5: Q ← 0 <b>فورًا</b>، من لحظة نزول CLR̅ مش من الحافة. والـ toggle عند ↑5 ملوش تأثير.</li>
+        <li>↑6: J=K=0 ← hold، Q = 0.</li>
+      </ol>
+      <p>Q النهائي: 0، يطلع 1 عند ↑1، يفضل 1 لحد ما CLR̅ ينزل، وبعدين 0 للآخر.</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q7">
+    <div class="sq-h"><span class="qb">Q7</span><h3>JK باستخدام D و MUX 4×1</h3><span class="topic">L1 · conversion</span></div>
+    <p class="en">Construct a JK flip-flop using a D flip-flop and a 4-to-1 line multiplexer.</p>
+    <p>الفكرة: الـ MUX بيختار واحد من 4 مدخلات حسب الـ select. لو خلّينا J و K هما الـ select، يبقى كل مدخل لازم يطلّع Q⁺ المطلوبة للحالة دي، والخرج يدخل على D (لأن <span class="m">Q⁺ = D</span>).</p>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>إيه اللي يدخل على كل مدخل؟</b></div><div data-fill="s1q7-mux"></div></div>
+    <details class="sol"><summary>الدايرة</summary><div>
+      <figure><svg class="cir" viewBox="0 0 360 160" width="360" aria-label="MUX 4 في 1 مدخلاته Q و 0 و 1 و Q بار، والـ select هما J و K، وخرجه داخل على D">
+        <rect class="box" x="110" y="15" width="70" height="110" rx="3"/><text x="122" y="70" class="s">4×1</text><text x="122" y="84" class="s">MUX</text>
+        <path class="wire" d="M60 35 H110 M60 58 H110 M60 81 H110 M60 104 H110"/>
+        <text x="40" y="39">Q</text><text x="44" y="62">0</text><text x="44" y="85">1</text><text x="40" y="108">Q̄</text>
+        <text x="113" y="39" class="s">I0</text><text x="113" y="62" class="s">I1</text><text x="113" y="85" class="s">I2</text><text x="113" y="108" class="s">I3</text>
+        <path class="wire" d="M130 125 V150 M160 125 V150"/><text x="118" y="158" class="s">J=S1</text><text x="152" y="158" class="s">K=S0</text>
+        <path class="wire" d="M180 70 H240"/>
+        <rect class="box" x="240" y="40" width="80" height="70" rx="3"/><text x="247" y="62">D</text><path class="gate" d="M240 84 L251 92 L240 100"/><text x="298" y="62">Q</text>
+        <path class="wire" d="M320 58 H352"/>
+      </svg></figure>
+      <p>Q و Q̄ راجعين feedback من خرج الـ D flip-flop لمدخلين الـ MUX.</p></div></details>
+  </article>
+
+  <article class="sq" id="s1-q8">
+    <div class="sq-h"><span class="qb">Q8</span><h3>PN flip-flop</h3><span class="topic">L1 · كل حاجة مع بعض</span></div>
+    <p class="en">PN flip-flop: PN = 00 clear, 01 no change, 10 complement, 11 set. (a) Characteristic table (b) characteristic equation (c) excitation table (d) convert PN to D.</p>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>(a) Characteristic table</b></div><div data-fill="s1q8-char"></div></div>
+    <details class="sol"><summary>(b) المعادلة من الـ K-map</summary><div>
+      <div class="kmaps" data-kmaps="s1q8"></div>
+      <p>الـ term <span class="m">P·N</span> موجود برضو بس زيادة (consensus)، لأن الـ 1 بتوعه متغطيين بالاتنين التانيين.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>(c) Excitation table</b></div><div data-fill="s1q8-exc"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>(d) حوّل PN لـ D</b></div><div data-fill="s1q8-d"></div></div>
+    <div class="note tip"><span class="tag">ملاحظة حلوة</span><p>لو قارنت الـ excitation بتاع PN بتاع JK هتلاقي <span class="m">P = J</span> و <span class="m">N = <span class="ov">K</span></span>. يعني الـ PN هو JK بس الـ K متعكسة. ودي طريقة تتأكد بيها من إجابتك.</p></div>
+  </article>
+
+  <div class="done-row"><button class="done-btn" type="button" data-lec="s1" aria-pressed="false">علّم إني خلّصت الشيت ده</button></div>
+</section>
+
+<!-- ================= L2 ================= -->
+<section class="lec" id="l2">
+  <div class="lec-head">
+    <div class="eyebrow">Lecture 2 · 17 slides</div>
+    <h2>Analysis of Clocked Sequential Circuits</h2>
+    <div class="ar">معاك دايرة، اعرف هي بتعمل إيه</div>
+  </div>
+
+  <h3 id="l2-flow">الخطوات</h3>
+  <p>المسألة بتدّيك رسمة دايرة، وبتسألك: لو دخّلت sequence معينة، الـ states هتمشي إزاي والخرج هيطلع إيه؟ الطريق دايمًا هو هو:</p>
+  <div class="flow"><span>Circuit</span><i>←</i><span>FF input + output equations</span><i>←</i><span class="k">Next-state equations</span><i>←</i><span>Transition table</span><i>←</i><span>State table</span><i>←</i><span>State graph</span></div>
+  <p>ولو معاك sequence ونقطة بداية، من الـ transition table تقدر ترسم الـ <b>timing chart</b> مباشرة.</p>
+  <div class="note tip"><span class="tag">الخطوة اللي بتفرق</span><p>الـ next-state equations: بتاخد معادلة الـ FF (اللي حفظتها في L1) وتعوّض فيها بالدخل اللي جاي من الدايرة. لـ JK: <span class="m">Q⁺ = J<span class="ov">Q</span> + <span class="ov">K</span>Q</span>. لـ D: <span class="m">Q⁺ = D</span>. لـ T: <span class="m">Q⁺ = T ⊕ Q</span>.</p></div>
+
+  <h3 id="l2-ex1">مثال 1: دايرة Mealy بـ اتنين JK</h3>
+  <p>السلايد 2: دخل واحد X، خرج واحد Z، اتنين JK flip-flops على الـ falling edge. المطلوب: حلّل الدايرة، وهات الخرج لـ X = 10101، وارسم الـ timing chart.</p>
+  <div class="walk">
+    <div class="step" data-title="اقرا الدايرة">
+      <h4>1. معادلات الدخل والخرج</h4>
+      <p>امشي ورا كل سلك من أوله لآخره. أي AND داخلها سلكين يبقى term فيه الاتنين مضروبين:</p>
+      <div class="eqb">J1 = X·Q2        K1 = X<br>J2 = X           K2 = X·Q1<br>Z  = X·<span class="ov">Q2</span> + <span class="ov">X</span>·Q2·<span class="ov">Q1</span> + X·Q1</div>
+      <p>Z فيها X، يعني الدايرة <b>Mealy</b>.</p>
+    </div>
+    <div class="step" data-title="Next state">
+      <h4>2. الـ next-state equations</h4>
+      <p>عوّض في <span class="m">Q⁺ = J<span class="ov">Q</span> + <span class="ov">K</span>Q</span> لكل FF:</p>
+      <div class="eqb">Q1⁺ = J1·<span class="ov">Q1</span> + <span class="ov">K1</span>·Q1 = <span class="hl">X·<span class="ov">Q1</span>·Q2 + <span class="ov">X</span>·Q1</span></div>
+      <div class="eqb">Q2⁺ = J2·<span class="ov">Q2</span> + <span class="ov">K2</span>·Q2 = X·<span class="ov">Q2</span> + <span class="ov">(X·Q1)</span>·Q2<br><span class="c">De Morgan: (XQ1)' = X' + Q1'</span><br>Q2⁺ = <span class="hl">X·<span class="ov">Q2</span> + <span class="ov">X</span>·Q2 + <span class="ov">Q1</span>·Q2</span></div>
+      <p>الحتة اللي ناس كتير بتتلخبط فيها: <span class="m"><span class="ov">K2</span></span> مش <span class="m"><span class="ov">X</span>·<span class="ov">Q1</span></span>. الـ bar على الـ AND كلها، فبتقلب لـ OR.</p>
+    </div>
+    <div class="step" data-title="Transition table">
+      <h4>3. الـ transition table: املاها إنت</h4>
+      <p>لكل صف (Q1Q2) ولكل X، عوّض في التلات معادلات. مثال: <span class="m">Q1Q2 = 01, X = 1</span>:</p>
+      <div class="eqb">Q1⁺ = 1·1·1 + 0 = 1<br>Q2⁺ = 1·0 + 0 + 1·1 = 1    <span class="c">← N.S. = 11</span><br>Z   = 1·0 + 0 + 1·0 = 0</div>
+      <p>كمّل الباقي بنفسك:</p>
+      <div data-fill="l2e1-trans"></div>
+      <p class="small muted">السلايد 4 بيعمل نفس الحكاية بـ K-maps: بيحط الـ 1s بتاعة كل term في الماپ ويقرا. نفس النتيجة، اختار اللي تريّحك.</p>
+    </div>
+    <div class="step" data-title="State table">
+      <h4>4. الـ state table: أسامي بدل أرقام</h4>
+      <p>سمّي كل كود: <span class="m">00 = S0, 01 = S1, 11 = S2, 10 = S3</span>. وحوّل الجدول:</p>
+      <div class="scrollx"><table class="tbl"><thead><tr><th rowspan="2">P.S.</th><th colspan="2">N.S.</th><th colspan="2">Z</th></tr><tr><th>X=0</th><th>X=1</th><th>X=0</th><th>X=1</th></tr></thead><tbody>
+        <tr><th>S0</th><td>S0</td><td>S1</td><td class="res">0</td><td class="res">1</td></tr><tr><th>S1</th><td>S1</td><td>S2</td><td class="res">1</td><td class="res">0</td></tr><tr><th>S2</th><td>S2</td><td>S0</td><td class="res">0</td><td class="res">1</td></tr><tr><th>S3</th><td>S3</td><td>S1</td><td class="res">0</td><td class="res">1</td></tr></tbody></table></div>
+    </div>
+    <div class="step" data-title="State graph">
+      <h4>5. الـ state graph</h4>
+      <p>كل صف في الجدول = دايرة بيطلع منها سهمين (واحد لـ X=0 وواحد لـ X=1). على كل سهم <span class="m">X/Z</span> لأنها Mealy. الـ graph مرسوم تحت في المحاكي.</p>
+      <p>ملاحظة حلوة: <b>مفيش أي سهم داخل على S3</b> من حالة تانية. يعني لو بدأنا من S0 عمرنا ما هنوصلها. الحالة دي اسمها unreachable.</p>
+    </div>
+    <div class="step" data-title="الـ output sequence">
+      <h4>6. X = 10101 من 00</h4>
+      <p>امشي في الجدول bit bit: من الحالة الحالية، بص على عمود X، خد Z والحالة الجاية.</p>
+      <div class="scrollx"><table class="tbl"><tbody>
+        <tr><th>X</th><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td></td></tr>
+        <tr><th>Q1</th><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+        <tr><th>Q2</th><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+        <tr><th>Z</th><td class="res">1</td><td class="res">1</td><td class="res">0</td><td class="res">0</td><td class="res">1</td><td></td></tr></tbody></table></div>
+      <div class="note err"><span class="tag">غلطة في السلايد 6</span><p>صفوف Q1 و Q2 في السلايد 6 متنسوخة من مثال 2 بالغلط (0 1 1 1 1 0 و 0 1 1 0 0 1). الصح حسب الجدول ده ونفس الـ timing chart في السلايد 7 هو اللي فوق. الـ Z نفسه صح: <b>1 1 0 0 1</b>.</p></div>
+    </div>
+  </div>
+
+  <h3 id="l2-sim1">شغّل مثال 1</h3>
+  <p>كل ضغطة على «خطوة» = نبضة clock. هتشوف الحالة الحالية منوّرة في الـ graph، والسهم اللي اتمشى عليه أحمر، والخانة في الجدول متعلّمة.</p>
+  <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Example 1 · Mealy</b></div><div data-fsm="l2e1"></div></div>
+
+  <h3 id="l2-false">الـ False Outputs في الـ Mealy timing chart</h3>
+  <p>السلايد 7 فيه حاجتين مكتوب جنبهم «False 0 output» و «False 1 output». دول ليه؟</p>
+  <div class="note deep"><span class="tag">شرح مطوّل</span>
+    <p>في Mealy: <span class="m">Z = f(state, X)</span>. الـ state بتتغير عند الـ clock edge. بس X جاي من بره، وغالبًا بيتغير <b>بعد</b> الـ edge بشوية.</p>
+    <p>في الفترة الصغيرة دي (بين الـ edge ولحظة تغيير X)، الدايرة شايفة <b>state جديدة</b> مع <b>X قديم</b>. التركيبة دي ملهاش معنى، والخرج اللي بيطلع فيها اسمه false output (أو glitch).</p>
+    <p>عشان كده في Mealy بنقرا الخرج <b>قبل الـ edge على طول</b>، لما X والـ state يكونوا الاتنين صح. وده كمان سبب إن الـ Moore مفيهوش المشكلة دي أصلًا: خرجه مش بيبص على X.</p></div>
+  <div class="panel"><div class="ph"><span class="kind">timing</span><b>Example 1 · Mealy</b><span>الحتت الحمرا = false outputs. غيّر X وشوف</span></div><div data-fsmtiming="l2e1"></div></div>
+
+  <h3 id="l2-ex2">مثال 2: دايرة Moore</h3>
+  <p>السلايد 8: اتنين JK برضو، بس <span class="m">Z = Q2</span>. Z مفيهاش X، فهي <b>Moore</b>.</p>
+  <div class="eqb">J1 = X        K1 = X·<span class="ov">Q2</span><br>J2 = X        K2 = X ⊕ <span class="ov">Q1</span>        Z = Q2</div>
+  <div class="eqb">Q1⁺ = X·<span class="ov">Q1</span> + <span class="ov">(X·<span class="ov">Q2</span>)</span>·Q1 = <span class="hl">X·<span class="ov">Q1</span> + <span class="ov">X</span>·Q1 + Q2·Q1</span></div>
+  <div class="eqb">Q2⁺ = X·<span class="ov">Q2</span> + <span class="ov">(X ⊕ <span class="ov">Q1</span>)</span>·Q2 = <span class="hl">X·<span class="ov">Q2</span> + X·<span class="ov">Q1</span>·Q2 + <span class="ov">X</span>·Q1·Q2</span></div>
+  <div class="note tip"><span class="tag">تريكة الـ XOR</span><p>عكس الـ XOR هو XNOR: «الاتنين زي بعض». <span class="m"><span class="ov">(X ⊕ <span class="ov">Q1</span>)</span> = X·<span class="ov">Q1</span> + <span class="ov">X</span>·Q1</span>. يعني X و Q̄1 زي بعض، أو X و Q1 مختلفين.</p></div>
+  <p>الأسامي: <span class="m">00=A, 01=B, 11=C, 10=D</span>. ولما X = 10101 الخرج = <span class="m">(0) 1 1 0 0 1</span>. الـ (0) دي هي الخرج قبل أي نبضة: في Moore الخرج موجود من الأول لأنه بيعتمد على الـ state بس، والـ state الأولى A/0.</p>
+  <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Example 2 · Moore</b><span>لاحظ إن Z مكتوب جوه الدواير</span></div><div data-fsm="l2e2"></div></div>
+  <div class="panel"><div class="ph"><span class="kind">timing</span><b>Example 2 · Moore</b><span>مفيش حتت حمرا هنا</span></div><div data-fsmtiming="l2e2"></div></div>
+
+  <h3 id="l2-ex3">مثال 3: بـ D flip-flops</h3>
+  <p>السلايد 14: ده أسهل نوع، لأن <span class="m">Q⁺ = D</span>، فمعادلة الدخل هي نفسها معادلة الـ next state. مفيش تعويض خالص.</p>
+  <div class="eqb">D<sub>A</sub> = X ⊕ <span class="ov">B</span>   ⟹   A⁺ = X ⊕ <span class="ov">B</span><br>D<sub>B</sub> = X + A    ⟹   B⁺ = X + A<br>Z = A ⊕ B</div>
+  <p>Z بيعتمد على A و B بس، فهي Moore. الأسامي <span class="m">00=S0, 01=S1, 11=S2, 10=S3</span>.</p>
+  <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Example 3 · D flip-flops</b></div><div data-fsm="l2e3"></div></div>
+
+  <h3 id="l2-ex4">مثال 4: الدايرة دي بتعمل إيه؟ (T flip-flops)</h3>
+  <p>السلايد 17 بيسألك «Explain the function» ومفيش حل في السلايدز. ده حلّي، راجعه مع المعيد:</p>
+  <div class="walk">
+    <div class="step" data-title="اقرا الدايرة">
+      <h4>المعادلات من الرسمة</h4>
+      <p>الـ OR داخلها x و C، وخرجها رايح على T بتاع B وعلى الـ AND. الـ AND داخلها خرج الـ OR و B. والـ inverter بيعكس x ويدخل على T بتاع C:</p>
+      <div class="eqb">T<sub>A</sub> = B·(x + C)<br>T<sub>B</sub> = x + C<br>T<sub>C</sub> = <span class="ov">x</span></div>
+    </div>
+    <div class="step" data-title="لما x = 0">
+      <h4>x = 0</h4>
+      <div class="eqb">T<sub>C</sub> = 1    T<sub>B</sub> = C    T<sub>A</sub> = B·C</div>
+      <p>C بيتقلب كل نبضة، B بيتقلب لما C=1، و A بيتقلب لما B=C=1. ده بالظبط <b>عداد binary عادي ABC بيزود 1</b>: 000، 001، 010، 011، …</p>
+    </div>
+    <div class="step" data-title="لما x = 1">
+      <h4>x = 1</h4>
+      <div class="eqb">T<sub>C</sub> = 0    T<sub>B</sub> = 1    T<sub>A</sub> = B</div>
+      <p>C ثابت. B بيتقلب كل نبضة، و A بيتقلب لما B=1. يعني AB بيعدّوا لوحدهم، و B وزنه 2 في ABC. يبقى العداد <b>بيزود 2</b> كل نبضة: 000، 010، 100، 110، 000…</p>
+    </div>
+    <div class="step" data-title="الإجابة">
+      <h4>الوظيفة</h4>
+      <p>عداد 3-bit (mod 8): <b>بيعدّ بواحد لما x = 0، وباتنين لما x = 1</b>. جرّب تحت وتأكد.</p>
+    </div>
+  </div>
+  <div class="panel"><div class="ph"><span class="kind">verify</span><b>Example 4 · T counter</b><span>غيّر x واضغط clock</span></div><div data-counter="l2e4"></div></div>
+
+  <h3 id="l2-quiz">اختبر نفسك</h3>
+  <div class="quiz" data-quiz="l2"></div>
+  <div class="note sheet"><span class="tag">الشيت</span><p><a href="#s2">Sheet 02</a> هو اللي بعد المحاضرة دي على طول.</p></div>
+  <p class="vids"><span class="muted">عايز تتفرج؟ (بحث يوتيوب)</span> <a href="https://www.youtube.com/results?search_query=analysis+of+clocked+sequential+circuits+JK+state+table+state+diagram" target="_blank" rel="noopener">analysis of sequential circuits</a></p>
+  <div class="done-row"><button class="done-btn" type="button" data-lec="l2" aria-pressed="false">علّم إني خلّصت المحاضرة دي</button></div>
+</section>
+
+<!-- ================= SHEET 02 ================= -->
+<section class="lec sheet-sec" id="s2">
+  <div class="lec-head">
+    <div class="eyebrow">Sheet 02 · CSE236N · بعد L2</div>
+    <h2>Analysis of Sequential Circuits</h2>
+    <div class="ar">6 أسئلة: تحليل، timing charts، واتنين تصميم عدادات</div>
+  </div>
+  <div class="policy"><p><b>زي الشيت اللي فات:</b> بيتسلّم بخط إيدك ولوحدك. حاول الأول، واستخدم المحاكيات عشان تتأكد.</p></div>
+
+  <article class="sq" id="s2-q1">
+    <div class="sq-h"><span class="qb">Q1</span><h3>اتنين D flip-flops: املا الـ timing</h3><span class="topic">L2 · analysis</span></div>
+    <p class="en">Two positive edge-triggered D flip-flops are connected as shown. Both start at 0. Fill in the timing diagram for Q1 and Q0.</p>
+    <img class="figimg" src="fig/s2q1.png" width="899" height="331" alt="D0 جاي من Q0 عن طريق inverter، و D1 جاي من XOR بين Q بار بتاع FF0 و Q1" style="max-width:560px">
+    <details class="hint"><summary>تلميح: اقرا الدايرة</summary><div>
+      <p>امشي ورا الأسلاك: D0 جاي من Q0 بعد الـ inverter. و D1 جاي من XOR داخلها Q̄ بتاع الـ FF الأولاني و Q1.</p>
+      <div class="eqb">D0 = <span class="ov">Q0</span>        D1 = <span class="ov">Q0</span> ⊕ Q1</div>
+      <p>ومع D: <span class="m">Q⁺ = D</span>. ابدأ من 00 واحسب 4 مرات.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>ارسم Q1 و Q0</b><span>الأسهم = طلعات CLK</span></div><div data-draw="s2q1"></div></div>
+    <details class="sol"><summary>الحل</summary><div>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>Q1Q0</th><th>D1 = Q̄0⊕Q1</th><th>D0 = Q̄0</th><th class="res">بعد الحافة</th></tr></thead><tbody>
+        <tr><td>00</td><td>1</td><td>1</td><td class="res">11</td></tr><tr><td>11</td><td>1</td><td>0</td><td class="res">10</td></tr><tr><td>10</td><td>0</td><td>1</td><td class="res">01</td></tr><tr><td>01</td><td>0</td><td>0</td><td class="res">00</td></tr></tbody></table></div>
+      <p>00 ← 11 ← 10 ← 01 ← 00: يعني 0، 3، 2، 1، 0. الدايرة دي <b>عداد 2-bit بيعدّ لتحت</b>. ده اللي المفروض تكتبه كخلاصة لو السؤال قال «what does it do».</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">verify</span><b>جرّب الدايرة</b></div><div data-counter="s2q1"></div></div>
+  </article>
+
+  <article class="sq" id="s2-q2">
+    <div class="sq-h"><span class="qb">Q2</span><h3>صمّم: x=0 يقف، x=1 يعدّ Gray</h3><span class="topic">L3 · design بـ D</span></div>
+    <p class="en">Design a sequential circuit with two D flip-flops A and B and one input x. When x = 0 the state stays the same. When x = 1 the circuit goes 00 → 01 → 11 → 10 → 00 and repeats.</p>
+    <p>مسألة design، بس مع D هي أسهل حاجة: <span class="m">D = Q⁺</span>، فالـ transition table نفسها هي جدول الـ D.</p>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>Transition table</b></div><div data-fill="s2q2-trans"></div></div>
+    <details class="sol"><summary>الـ K-maps والدايرة</summary><div>
+      <div class="kmaps" data-kmaps="s2q2"></div>
+      <p>الدايرة: 4 AND و 2 OR (أو 2 MUX 2×1 لو حابب: x بيختار بين «احتفظ» و «امشي خطوة»). لاحظ إن <span class="m">D<sub>A</sub> = A·x̄ + B·x</span> معناها بالظبط: لو x=0 خد A، لو x=1 خد B.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">verify</span><b>جرّب التصميم</b><span>غيّر x</span></div><div data-counter="s2q2"></div></div>
+  </article>
+
+  <article class="sq" id="s2-q3">
+    <div class="sq-h"><span class="qb">Q3</span><h3>كمّل الـ timing من الـ state graph وحدد الـ false output</h3><span class="topic">L2 · Mealy timing</span></div>
+    <p class="en">The state graph is for a circuit with input x, output z and negative edge-triggered flip-flops. Complete the timing diagram and indicate any false output.</p>
+    <img class="figimg" src="fig/s2q3.jpg" width="391" height="365" alt="state graph بأربع حالات: 00 و 01 و 10 و 11، والخرج على الأسهم" style="max-width:260px">
+    <details class="hint"><summary>تلميح</summary><div>
+      <p>الحالات اتسمّت بالكود (y1y2) على طول. افترض البداية 00. عند كل نزلة: خد x قبلها، وروح الحالة الجاية من الـ graph.</p>
+      <p>الـ z هنا Mealy، يعني بيتغير مع x كمان، مش مع الـ clock بس. ارسمه في كل حتة صغيرة: (الحالة دلوقتي، x دلوقتي) ← z. وبعدين دوّر على الحتت اللي بين الحافة وتغيير x.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">draw</span><b>ارسم y1 و y2 و z</b><span>الأسهم = النزلات</span></div><div data-draw="s2q3"></div></div>
+    <details class="sol"><summary>الحل والـ false outputs</summary><div>
+      <p>الـ x اللي بتتقري عند النزلات بالترتيب: 0، 1، 1، 0، 1، 1، 1، 1، 0. فالحالات:</p>
+      <div class="eqb">00 →(0) 00 →(1) 01 →(1) 10 →(0) 00 →(1) 01 →(1) 10 →(1) 10 →(1) 10 →(0) 00</div>
+      <p>z = 1 بس لما نكون في 10 و x = 1.</p>
+      <p><b>False output 1</b>: عند الحافة التالتة رحنا 10، و x لسه 1 لحظة قبل ما ينزل. فـ z طلع 1 لفترة صغيرة وبعدين رجع 0. الـ 1 ده غلط لأن الدخل الحقيقي للفترة دي 0. (المظلل في الحل.)</p>
+      <p>وعند الحافة التامنة نفس الحكاية: الحالة لسه 10 و x لسه 1 لحظة، فـ z بيفضل 1 شوية بعد الحافة قبل ما ينزل. ده برضو false output، بس مش باين كنبضة لوحده لأنه لازق في الـ 1 اللي قبله.</p></div></details>
+  </article>
+
+  <article class="sq" id="s2-q4">
+    <div class="sq-h"><span class="qb">Q4</span><h3>Timing chart لـ x = 10011</h3><span class="topic">L2 · analysis + timing</span></div>
+    <p class="en">Construct a timing chart for the network for x = 10011 (x changes midway between clock pulses). Initially Q1Q2 = 01.</p>
+    <img class="figimg" src="fig/s2q4.png" width="789" height="229" alt="J1 = x و Q2، K1 = x، J2 = x و Q1 بار، K2 = x، و Z = Q2 OR x، والـ clock على الـ falling edge" style="max-width:520px">
+    <details class="hint"><summary>تلميح: المعادلات</summary><div>
+      <div class="eqb">J1 = x·Q2      K1 = x<br>J2 = x·<span class="ov">Q1</span>      K2 = x<br>Z = x + Q2   <span class="c">(فيها x ← Mealy)</span></div>
+      <p>عوّض في <span class="m">Q⁺ = J<span class="ov">Q</span> + <span class="ov">K</span>Q</span> لكل واحد.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>Transition table</b></div><div data-fill="s2q4-trans"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>شغّل x = 10011 من 01</b></div><div data-fsm="s2q4"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">timing</span><b>الـ timing chart</b></div><div data-fsmtiming="s2q4"></div></div>
+    <details class="sol"><summary>الحل</summary><div>
+      <div class="eqb">Q1⁺ = x·<span class="ov">Q1</span>·Q2 + <span class="ov">x</span>·Q1<br>Q2⁺ = x·<span class="ov">Q1</span>·<span class="ov">Q2</span> + <span class="ov">x</span>·Q2</div>
+      <div class="scrollx"><table class="tbl"><tbody>
+        <tr><th>x</th><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td></td></tr>
+        <tr><th>Q1Q2</th><td>01</td><td>10</td><td>10</td><td>10</td><td>00</td><td>01</td></tr>
+        <tr><th>Z</th><td class="res">1</td><td class="res">0</td><td class="res">0</td><td class="res">1</td><td class="res">1</td><td></td></tr></tbody></table></div>
+      <p>Z الصح = <b>1 0 0 1 1</b> (بنقراه قبل كل حافة). بعد الحافة الأولى Z بيفضل 1 لحظة لحد ما x ينزل، وده false output بس مش باين كنبضة لوحده.</p></div></details>
+  </article>
+
+  <article class="sq" id="s2-q5">
+    <div class="sq-h"><span class="qb">Q5</span><h3>عداد: X=0 يزود 3 (mod 8)، X=1 ينقص 2 (mod 6)</h3><span class="topic">L3 · design بأنواع مختلفة</span></div>
+    <p class="en">Design a counter with input X that counts up modulo-8 with step 3 when X = 0, and counts down modulo-6 with step 2 when X = 1. Use a J-K flip-flop for the middle bit and T flip-flops for the most and least significant bits.</p>
+    <p>أصعب سؤال في الشيت، بس هو نفس طريقة L3 بالظبط. سمّي الـ bits <b>A</b> (MSB، T) و <b>B</b> (النص، JK) و <b>C</b> (LSB، T).</p>
+    <details class="hint"><summary>تلميح: الـ sequence</summary><div>
+      <p><b>X=0</b>: n ← n+3 mod 8: 0←3، 1←4، 2←5، 3←6، 4←7، 5←0، 6←1، 7←2.</p>
+      <p><b>X=1</b>: n ← n−2 mod 6 (يعني من 0 لـ 5 بس): 0←4، 1←5، 2←0، 3←1، 4←2، 5←3. والحالتين 6 و 7 مش موجودين في الـ mod 6، فهم X.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>Transition + excitation table</b><span>14 صف</span></div><div data-fill="s2q5-tbl"></div></div>
+    <details class="sol"><summary>الـ K-maps والمعادلات</summary><div>
+      <div class="kmaps" data-kmaps="s2q5"></div>
+      <div class="eqb">T<sub>A</sub> = <span class="ov">X</span>B + <span class="ov">X</span>C + X<span class="ov">B</span><br>J<sub>B</sub> = <span class="ov">X</span>·<span class="ov">C</span> + X·A        K<sub>B</sub> = X + <span class="ov">C</span><br>T<sub>C</sub> = <span class="ov">X</span></div>
+      <p>T<sub>C</sub> سهلة: لما تزوّد 3 (فردي) الـ LSB بيتقلب، ولما تنقص 2 (زوجي) مش بيتقلب. T<sub>A</sub> ممكن تتكتب <span class="m">(X ⊕ B) + X̄C</span>.</p>
+      <p><b>سؤال زيادة</b>: لو العداد كان في 6 أو 7 و X=1؟ جرّب في المحاكي: 6 ← 4 و 7 ← 5، يعني بيرجع للدورة لوحده.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">verify</span><b>جرّب العداد</b><span>X=0 ثم X=1</span></div><div data-counter="s2q5"></div></div>
+  </article>
+
+  <article class="sq" id="s2-q6">
+    <div class="sq-h"><span class="qb">Q6</span><h3>الخرج لـ x = 11010100</h3><span class="topic">L2 · analysis</span></div>
+    <p class="en">For the sequential circuit, find the output if the input x = 11010100.</p>
+    <figure><svg class="cir" viewBox="0 0 470 330" width="470" aria-label="دايرة فيها JK و T flip-flops: J يساوي Z، K يساوي x و Q2 بار، T يساوي x بار، و Z يساوي x و Q1 أو x و Q2 بار">
+      <text x="4" y="29">x</text><path class="wire" d="M16 25 H150"/><circle class="dot" cx="40" cy="25" r="3"/>
+      <path class="wire" d="M40 25 V245 H215"/><circle class="dot" cx="40" cy="85" r="3"/><path class="wire" d="M40 85 H150"/>
+      <path class="gate" d="M150 15 H172 A20 20 0 0 1 172 55 H150 Z"/><path class="gate" d="M150 75 H172 A20 20 0 0 1 172 115 H150 Z"/>
+      <path class="wire" d="M192 35 H222 V50 H246 M192 95 H226 V80 H246"/><circle class="dot" cx="210" cy="95" r="3"/>
+      <path class="gate" d="M238 35 Q253 65 238 95 Q273 95 293 65 Q273 35 238 35 Z"/>
+      <path class="wire" d="M293 65 H455"/><text x="440" y="58">Z</text><circle class="dot" cx="320" cy="65" r="3"/>
+      <path class="wire" d="M320 65 V122 H288 V145 H300"/>
+      <path class="wire" d="M210 95 V185 H300"/>
+      <rect class="box" x="300" y="130" width="80" height="70" rx="3"/><text x="306" y="149">J</text><text x="306" y="189">K</text><path class="gate" d="M300 159 L310 165 L300 171"/><text x="350" y="149">Q1</text><text x="350" y="189" class="s">Q̄1</text>
+      <rect class="box" x="300" y="230" width="80" height="70" rx="3"/><text x="306" y="249">T</text><path class="gate" d="M300 259 L310 265 L300 271"/><text x="350" y="249" class="s">Q2</text><text x="350" y="289">Q̄2</text>
+      <path class="gate" d="M215 233 L243 245 L215 257 Z"/><circle class="gate" cx="247" cy="245" r="4"/><path class="wire" d="M251 245 H300"/>
+      <text x="4" y="319" class="s">CLK</text><path class="wire" d="M30 315 H270 V165 H300 M270 265 H300"/><circle class="dot" cx="270" cy="265" r="3"/>
+      <path class="wire" d="M380 145 H400 V212 H120 V45 H150"/>
+      <path class="wire" d="M380 285 H420 V324 H100 V105 H150"/>
+    </svg><figcaption>نفس دايرة الشيت متعادة الرسم: Q1 راجع للـ AND الفوقانية، Q̄2 راجع للـ AND التحتانية.</figcaption></figure>
+    <details class="hint"><summary>تلميح: المعادلات</summary><div>
+      <div class="eqb">T = <span class="ov">x</span>           <span class="c">(الـ inverter)</span><br>K = x·<span class="ov">Q2</span>         <span class="c">(الـ AND التحتانية)</span><br>Z = x·Q1 + x·<span class="ov">Q2</span>   <span class="c">(الـ OR)</span><br>J = Z</div>
+      <p>الـ clock مفيهوش bubble ← positive edge. والسؤال مقالش الحالة الأولى، فافترض <b>Q1Q2 = 00</b> واكتب ده في إجابتك.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>امشي على x bit bit</b></div><div data-fill="s2q6-seq"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>اتأكد</b></div><div data-fsm="s2q6"></div></div>
+    <details class="sol"><summary>الحل</summary><div>
+      <div class="eqb">Q1⁺ = J·<span class="ov">Q1</span> + <span class="ov">K</span>·Q1 = x·<span class="ov">Q1</span>·<span class="ov">Q2</span> + (<span class="ov">x</span> + Q2)·Q1<br>Q2⁺ = T ⊕ Q2 = <span class="ov">x</span> ⊕ Q2</div>
+      <p>مع الافتراض إننا بنبدأ من 00: <b>Z = 1 1 0 0 0 1 0 0</b>.</p></div></details>
+  </article>
+
+  <div class="done-row"><button class="done-btn" type="button" data-lec="s2" aria-pressed="false">علّم إني خلّصت الشيت ده</button></div>
+</section>
+
+<!-- ================= L3 ================= -->
+<section class="lec" id="l3">
+  <div class="lec-head">
+    <div class="eyebrow">Lecture 3 · 13 slides</div>
+    <h2>Design of Clocked Sequential Circuits</h2>
+    <div class="ar">من كلام لدايرة</div>
+  </div>
+
+  <h3 id="l3-flow">الخطوات</h3>
+  <div class="flow"><span>Problem statement</span><i>←</i><span>State graph</span><i>←</i><span>State table</span><i>←</i><span>Reduce</span><i>←</i><span>State assignment</span><i>←</i><span class="k">Transition table</span><i>←</i><span class="k">FF input equations</span><i>←</i><span>Circuit</span></div>
+  <p>في العدادات (counters) الـ states هي الأرقام نفسها، فبنقفز من الـ problem statement للـ transition table على طول. وده اللي في أمثلة المحاضرة دي كلها. الجزء الأول (state graph من الكلام) هو موضوع L4.</p>
+
+  <h3 id="l3-key">Analysis ضد Design</h3>
+  <div class="scrollx"><table class="tbl prose">
+    <thead><tr><th></th><th>Analysis (L2)</th><th>Design (L3)</th></tr></thead>
+    <tbody>
+      <tr><th>معاك</th><td>الدايرة</td><td>وصف بالكلام أو sequence</td></tr>
+      <tr><th>عايز</th><td>الـ state graph والخرج</td><td>الدايرة</td></tr>
+      <tr><th>الأداة</th><td><b>characteristic equation</b>: معايا J و K، Q⁺ هيبقى إيه؟</td><td><b>excitation table</b>: عايز Q⁺ ده، أحط J و K إيه؟</td></tr>
+    </tbody></table></div>
+  <div class="note tip"><span class="tag">أهم جملة في المحاضرة</span><p>في الـ Design، الـ transition table بتقولك كل FF «لازم يروح فين». والـ excitation table بتقولك «تدّيه إيه عشان يروح هناك». خلاص، ده كل السر. لو مش حافظ الـ excitation، <a href="#l1-exc">ارجعله</a>.</p></div>
+
+  <h3 id="l3-ex1">مثال 1: عداد بيعدّ sequence غريبة</h3>
+  <p>صمّم عداد بيمشي <span class="m">000 → 100 → 111 → 010 → 011 → 000</span> باستخدام JK.</p>
+  <div class="walk">
+    <div class="step" data-title="افهم المسألة">
+      <h4>كام FF؟ وإيه اللي مش مستخدم؟</h4>
+      <p>أكبر رقم فيه 3 bits، يبقى 3 flip-flops (Q1 Q2 Q3). الـ 8 احتمالات منهم 5 بس مستخدمين. الباقي <span class="m">001, 101, 110</span> مش هيحصلوا، فنحطهم <b>X</b> (don't care). وده بيسهّل الـ K-maps جدًا.</p>
+    </div>
+    <div class="step" data-title="Transition table">
+      <h4>من كل state للي بعدها</h4>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>Q1Q2Q3</th><th class="res">Q1⁺Q2⁺Q3⁺</th></tr></thead><tbody>
+        <tr><td>000</td><td class="res">100</td></tr><tr><td>001</td><td class="res">– – –</td></tr><tr><td>010</td><td class="res">011</td></tr><tr><td>011</td><td class="res">000</td></tr><tr><td>100</td><td class="res">111</td></tr><tr><td>101</td><td class="res">– – –</td></tr><tr><td>110</td><td class="res">– – –</td></tr><tr><td>111</td><td class="res">010</td></tr></tbody></table></div>
+      <p>ترتيب الجدول بالـ binary، مش بترتيب العدّ. كل صف بتكتب جنبه «الرقم اللي بعده في الـ sequence».</p>
+    </div>
+    <div class="step" data-title="Excitation: املاها">
+      <h4>J و K لكل FF</h4>
+      <p>كل FF بيبص على الـ bit بتاعه بس. مثال: 000 ← 100: Q1 من 0 لـ 1 ← <span class="m">J1=1, K1=X</span>. Q2 من 0 لـ 0 ← <span class="m">J2=0, K2=X</span>. Q3 من 0 لـ 0 ← <span class="m">J3=0, K3=X</span>.</p>
+      <div data-fill="l3e1-jk"></div>
+    </div>
+    <div class="step" data-title="K-maps">
+      <h4>ماپ لكل دخل</h4>
+      <p>كل عمود من الجدول اللي فات بيبقى K-map (والصفوف المش مستخدمة X). حط الماوس على أي term عشان تشوف مجموعته:</p>
+      <div class="kmaps" data-kmaps="l3e1"></div>
+      <div class="note err"><span class="tag">غلطة في السلايد 3</span><p>مكتوب تحت ماپ J2 إن <span class="m">J2 = Q3</span>، بس الماپ نفسه فيه المجموعة على الصف Q1=1 كله، والدايرة في السلايد 4 داخل فيها Q1 على J2. الصح: <b>J2 = Q1</b>. اتأكد بنفسك: الحالة 100 محتاجة J2=1 و Q3 فيها 0.</p></div>
+    </div>
+    <div class="step" data-title="الدايرة + التأكد">
+      <h4>المعادلات النهائية</h4>
+      <div class="eqb">J1 = <span class="ov">Q2</span>     K1 = Q3<br>J2 = Q1     K2 = <span class="ov">Q1</span>·Q3<br>J3 = Q1 + Q2     K3 = 1</div>
+      <p>الدايرة (السلايد 4): AND واحدة لـ K2، و OR واحدة لـ J3، والباقي أسلاك. شغّل العداد تحت واتأكد إنه بيمشي في الـ sequence.</p>
+      <p><b>سؤال امتحانات</b>: لو العداد اشتغل بالغلط من حالة مش مستخدمة (001 أو 101 أو 110)؟ دوس على الـ bits وحطها، واضغط clock. هتلاقيه بيرجع للـ sequence في نبضة واحدة (001 ← 100، 101 ← 010، 110 ← 111). العداد ده <b>self-starting</b>.</p>
+    </div>
+  </div>
+  <div class="panel"><div class="ph"><span class="kind">verify</span><b>Example 1 · JK counter</b></div><div data-counter="l3e1"></div></div>
+
+  <h3 id="l3-ex2">مثال 2: عداد Up/Down بـ 3 bits</h3>
+  <p>X = 1 يعدّ لفوق، X = 0 يعدّ لتحت. مرة بـ T ومرة بـ JK.</p>
+  <p>الـ transition table فيها 8 صفوف × عمودين (X=0 و X=1). مع T الموضوع سهل: <b>T = 1 في أي bit هيتغير</b>. يعني بتقارن الحالة باللي بعدها وتحط 1 تحت أي bit مختلف.</p>
+  <div class="scrollx"><table class="tbl"><thead><tr><th rowspan="2">Q1Q2Q3</th><th colspan="2">N.S.</th><th colspan="2">T1</th><th colspan="2">T2</th><th colspan="2">T3</th></tr><tr><th>X=0</th><th>X=1</th><th>0</th><th>1</th><th>0</th><th>1</th><th>0</th><th>1</th></tr></thead><tbody>
+    <tr><td>000</td><td>111</td><td>001</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>001</td><td>000</td><td>010</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>010</td><td>001</td><td>011</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>011</td><td>010</td><td>100</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>100</td><td>011</td><td>101</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>101</td><td>100</td><td>110</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td></tr>
+    <tr><td>110</td><td>101</td><td>111</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+    <tr><td>111</td><td>110</td><td>000</td><td>0</td><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td></tr></tbody></table></div>
+  <div class="kmaps" data-kmaps="l3e2"></div>
+  <div class="eqb">T1 = <span class="ov">X</span>·<span class="ov">Q2</span>·<span class="ov">Q3</span> + X·Q2·Q3     T2 = <span class="ov">X</span>·<span class="ov">Q3</span> + X·Q3     T3 = 1</div>
+  <div class="note tip"><span class="tag">تريكة تحل أي binary counter من غير K-map</span>
+    <p><b>Up</b>: الـ bit بيتقلب لما <b>كل</b> الـ bits اللي أصغر منه = 1 (زي الـ carry). <b>Down</b>: بيتقلب لما كل اللي أصغر منه = 0 (زي الـ borrow).</p>
+    <p>طبّقها: T3 (الأصغر، مفيش حد أصغر منه) = 1 دايمًا. T2: up لما Q3=1، down لما Q3=0 ← <span class="m">XQ3 + X̄Q̄3</span>. T1: up لما Q2Q3=11، down لما Q2Q3=00. نفس اللي طلع من الماپ بالظبط.</p></div>
+  <p><b>بالـ JK</b> (السلايد 8 و 9): الـ maps بتطلّع <span class="m">K1 = J1</span> و <span class="m">K2 = J2</span> و <span class="m">J3 = K3 = 1</span>. ليه؟ لأن JK لما J = K بيبقى T flip-flop بالظبط (00 = hold، 11 = toggle). فـ J = K = نفس معادلة T.</p>
+  <div class="panel"><div class="ph"><span class="kind">verify</span><b>Example 2 · Up/Down counter</b><span>غيّر X وشوف الاتجاه</span></div><div data-counter="l3e2"></div></div>
+
+  <h3 id="l3-ex3">مثال 3: محوّل BCD لـ Excess-3</h3>
+  <p>Excess-3 = BCD + 3. الدايرة فيها 4 JK (A B C D). بتحط الرقم BCD في الـ flip-flops، وبعد نبضة «Convert» واحدة يبقى فيهم الرقم + 3.</p>
+  <ul>
+    <li>الأرقام الصح من 0 لـ 9 بس. من 1010 لـ 1111 (10–15) مش BCD، فكلهم <b>X</b>.</li>
+    <li>Transition table: كل رقم n ← n + 3 (السلايد 11).</li>
+    <li>وبعدين excitation الـ JK لكل bit، وماپ لكل دخل:</li>
+  </ul>
+  <div class="kmaps" data-kmaps="l3e3"></div>
+  <div class="eqb">JA = B(C + D)    KA = 0<br>JB = KB = C + D<br>JC = KC = <span class="ov">D</span><br>JD = KD = 1</div>
+  <div class="note err"><span class="tag">غلطة مطبعية في السلايد 12</span><p>مكتوب <span class="m">JA = BC + BD = B(C + B)</span>. الصح طبعًا <b>B(C + D)</b>.</p></div>
+  <div class="note deep"><span class="tag">ليه JD = KD = 1 و KA = 0؟</span><p><b>D</b>: إنك تزوّد 3 (عدد فردي) لازم يقلب أصغر bit دايمًا. والـ JK لما J=K=1 بيقلب.</p><p><b>A</b>: الحالات اللي فيها A=1 في BCD هي 8 و 9 بس، و 8+3=11 و 9+3=12، والاتنين فيهم A=1 برضو. يعني A عمره ما بينزل، فـ KA = 0.</p></div>
+  <div class="panel"><div class="ph"><span class="kind">verify</span><b>Example 3 · BCD → Excess-3</b><span>اختار رقم واضغط Convert</span></div><div data-counter="l3e3"></div></div>
+
+  <h3 id="l3-practice">تمرين: صمّم بنفسك</h3>
+  <p>صمّم عداد Gray بـ 2 bits: <span class="m">00 → 01 → 11 → 10 → 00</span> باستخدام <b>D flip-flops</b>. املا الجدول وطلّع D1 و D2.</p>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>Gray counter بـ D</b><span>تمرين مني، مش في السلايدز</span></div><div data-fill="l3-gray"></div></div>
+
+  <h3 id="l3-quiz">اختبر نفسك</h3>
+  <div class="quiz" data-quiz="l3"></div>
+  <div class="note sheet"><span class="tag">مسائل Design في الشيتات</span><p>مسائل التصميم بالعدادات موجودة في <a href="#s2-q2">Sheet 02 Q2</a> و <a href="#s2-q5">Sheet 02 Q5</a>.</p></div>
+  <p class="vids"><span class="muted">عايز تتفرج؟ (بحث يوتيوب)</span> <a href="https://www.youtube.com/results?search_query=design+synchronous+counter+using+JK+flip+flop+excitation+table" target="_blank" rel="noopener">design counter with JK</a> <a href="https://www.youtube.com/results?search_query=3+bit+up+down+counter+T+flip+flop+design" target="_blank" rel="noopener">up/down counter</a></p>
+  <div class="done-row"><button class="done-btn" type="button" data-lec="l3" aria-pressed="false">علّم إني خلّصت المحاضرة دي</button></div>
+</section>
+
+<!-- ================= L4 ================= -->
+<section class="lec" id="l4">
+  <div class="lec-head">
+    <div class="eyebrow">Lecture 4 · 14 slides</div>
+    <h2>Derivation of State Graphs &amp; Tables</h2>
+    <div class="ar">إزاي تحوّل الكلام لـ state graph</div>
+  </div>
+
+  <h3 id="l4-idea">الأول: يعني إيه state أصلًا؟</h3>
+  <p>دي أصعب محاضرة لأنها مفيهاش «قانون» تعوّض فيه. بتحتاج طريقة تفكير. فخلينا نبنيها على مهل.</p>
+  <div class="note deep"><span class="tag">الفكرة الأساسية</span>
+    <p>الدايرة بتشوف الدخل bit bit، ومبتقدرش ترجع تبص على اللي فات. الـ <b>state</b> هي «النوتة» اللي الدايرة كاتبة فيها <b>أقل حاجة لازم تفتكرها</b> عشان تعرف تكمّل.</p>
+    <p>مثال: لو بتدوّر على 101، مش محتاج تفتكر كل اللي شفته. محتاج تعرف بس: «أنا ماشي في 101 لحد فين؟». لسه مبدأتش؟ شفت 1؟ شفت 10؟ تلات احتمالات = تلات states.</p></div>
+  <p>الطريقة اللي بتشتغل مع أي مسألة:</p>
+  <ol class="steps">
+    <li>ابدأ بحالة A = «لسه مشفتش حاجة».</li>
+    <li>لكل حالة اسأل سؤالين: <b>لو جالي 0 أروح فين؟ لو جالي 1 أروح فين؟</b> كل حالة لازم يطلع منها سهمين بالظبط.</li>
+    <li>قبل ما تعمل حالة جديدة، اسأل: فيه حالة موجودة <b>معناها نفس الكلام</b>؟ لو آه ارجعلها.</li>
+    <li>اكتب جنب كل حالة معناها بالكلام. ده بيمنع 90% من الغلط.</li>
+    <li>جرّب الـ graph على sequence الامتحان وشوف الخرج طالع صح.</li>
+  </ol>
+  <p>والمسائل في المحاضرة نوعين أساسيين، وكل نوع ليه تكنيك:</p>
+  <div class="scrollx"><table class="tbl prose">
+    <thead><tr><th></th><th>مجموعات بـ reset</th><th>مستمر مع overlap</th></tr></thead>
+    <tbody>
+      <tr><th>الكلمة في المسألة</th><td>«examines groups of N… resets after every N inputs»</td><td>«every time the sequence is detected… overlapping accepted»</td></tr>
+      <tr><th>معناها</th><td>الدخل بيتقسم مجموعات منفصلة، وبعد آخر bit في كل مجموعة نرجع A</td><td>بندوّر على النمط في أي حتة، وآخر الـ bits من نمط ممكن تبدأ نمط جديد</td></tr>
+      <tr><th>التكنيك</th><td>شجرة، أو فرع «صح» وفرع «باظت» يعدّ اللي فاضل</td><td>الـ state = أطول جزء من أول النمط موجود في آخر اللي شفته</td></tr>
+      <tr><th>المسائل</th><td>1، 2، 3</td><td>4، 5، 6، 7</td></tr>
+    </tbody></table></div>
+
+  <h3 id="l4-groups">النوع الأول: مجموعات بـ reset</h3>
+  <p><b>Problem 1</b>: مجموعات من 3، و Z = 1 لو المجموعة 101.</p>
+  <p><b>الحل البديهي (الشجرة)</b>: كل حالة = الـ bits اللي شفتها لحد دلوقتي في المجموعة. بعد bit واحد: حالتين (B=0، C=1). بعد اتنين: أربعة (D، E، F، G). والـ bit التالت بيرجعنا A دايمًا، والخرج 1 بس من F (شفت 10) لما يجي 1.</p>
+  <p><b>الحل الأذكى</b>: أول ما المجموعة «تبوظ» (bit مش زي 101)، مبقاش يفرق شفت إيه. محتاج بس أعدّ كام bit فاضل لحد ما أرجع A. فبنعمل فرع «ماشي صح» (B: شفت 1، C: شفت 10) وفرع «باظت» (D: فاضل 2، E: فاضل 1). 5 states بدل 7.</p>
+  <div class="switch" data-switch>
+    <button type="button" data-target="p1t">Problem 1 · شجرة</button>
+    <button type="button" data-target="p1a">Problem 1 · الحل الأذكى</button>
+    <button type="button" data-target="p2t">Problem 2 · شجرة</button>
+    <button type="button" data-target="p2a">Problem 2 · الحل الأذكى</button>
+    <button type="button" data-target="p3">Problem 3</button>
+  </div>
+  <div id="p1t" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 1 · tree</b><span>مجموعات من 3، Z=1 لو 101</span></div><div data-fsm="p1tree"></div></div>
+  <div id="p1a" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 1 · another solution</b><span>5 states بس</span></div><div data-fsm="p1alt"></div></div>
+  <div id="p2t" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 2 · tree</b><span>مجموعات من 4، Z=1 لو 0110 أو 1001 · 15 state</span></div><div data-fsm="p2tree"></div></div>
+  <div id="p2a" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 2 · another solution</b><span>نفس المسألة بـ 9 states</span></div>
+    <p class="small">فرعين «صح»: واحد لـ 0110 (B ← C ← D) وواحد لـ 1001 (E ← F ← G). وأي حاجة تبوظ تروح لفرع العدّ: H (فاضل 2) ← I (فاضل 1) ← A.</p><div data-fsm="p2alt"></div></div>
+  <div id="p3" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 3</b><span>مجموعات من 4، Z=1 لو 0101 أو 1001</span></div>
+    <p class="small">التريكة هنا: النمطين آخرهم <b>01</b>. فبعد أول اتنين bits، «10» (من 1001) و «01» (من 0101) الاتنين محتاجين نفس الحاجة: 01. يعني نفس الحالة C. ده اسمه دمج الحالات اللي معناها واحد.</p><div data-fsm="p3"></div></div>
+
+  <h3 id="l4-overlap">النوع التاني: مستمر مع Overlap</h3>
+  <p><b>Problem 4</b>: Z = 1 كل ما يظهر 101، والـ overlap مسموح. يعني في <span class="m">10101</span> فيه اتنين 101 (الـ 1 اللي في النص مشترك).</p>
+  <div class="note deep"><span class="tag">قاعدة الرجوع (fallback)</span>
+    <p>كل حالة معناها: «أطول جزء من <b>أول</b> 101 موجود في <b>آخر</b> اللي شفته». A = مفيش، B = «1»، C = «10».</p>
+    <p>لما يجيلك bit يبوّظ، متقولش «خلاص نرجع A». بص على آخر اللي شفته، ودوّر على أطول ذيل فيه ينفع يبقى بداية للنمط:</p>
+    <ul>
+      <li>في B (…1) وجه <b>1</b>: بقى «11». الذيل «1» بداية 101، فنفضل في <b>B</b>.</li>
+      <li>في C (…10) وجه <b>0</b>: بقى «100». مفيش ذيل يبدأ بيه 101، نرجع <b>A</b>.</li>
+      <li>في C (…10) وجه <b>1</b>: لقينا 101 ← Z=1. والـ 1 الأخير ده نفسه بداية 101 جديدة، فنروح <b>B</b> مش A. <b>ده معنى الـ overlap.</b></li>
+    </ul>
+    <p>من غير overlap كنا هنرجع A بعد ما نلاقي 101.</p></div>
+  <div class="note tip"><span class="tag">Mealy ولا Moore؟</span><p>Mealy لـ نمط طوله n محتاج n حالة (الخرج على السهم الأخير). Moore محتاج <b>n + 1</b>، لأن الخرج 1 لازم يبقى «ساكن» في حالة لوحده (D/1 في Problem 4). وفي Moore الخرج بيظهر متأخر نبضة. شغّل الاتنين على نفس الـ sequence وقارن.</p></div>
+  <div class="switch" data-switch>
+    <button type="button" data-target="p4m">P4 · 101 Mealy</button>
+    <button type="button" data-target="p4o">P4 · 101 Moore</button>
+    <button type="button" data-target="p5m">P5 · 1111 Mealy</button>
+    <button type="button" data-target="p5o">P5 · 1111 Moore</button>
+    <button type="button" data-target="p6">P6 · 010 أو 1001 Mealy</button>
+    <button type="button" data-target="p7">P7 · 010 أو 1001 Moore</button>
+  </div>
+  <div id="p4m" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 4 · Mealy</b><span>sequence السلايد محطوطة جاهزة</span></div><div data-fsm="p4mealy"></div></div>
+  <div id="p4o" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 4 · Moore</b><span>لاحظ الحالة D/1 الزيادة</span></div><div data-fsm="p4moore"></div></div>
+  <div id="p5m" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 5 · Mealy</b><span>1111 مع overlap</span></div>
+    <p class="small">أي 0 في أي وقت يرجعنا A، لأن 1111 مفيهاش ولا 0. ومن D (…111) لو جه 1: لقيناها، وآخر 3 bits لسه 111 فنفضل في D. يعني 111111 بتطلّع Z=1 تلات مرات.</p><div data-fsm="p5mealy"></div></div>
+  <div id="p5o" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 5 · Moore</b></div><div data-fsm="p5moore"></div></div>
+  <div id="p6" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 6 · Mealy minimal</b><span>نمطين مع بعض</span></div>
+    <p class="small">لما يبقى فيه نمطين، الحالة = «آخر حاجة شفتها مفيدة لأي نمط منهم». B (…0) بداية 010، D (…1) بداية 1001. E (…10) مفيدة للاتنين: لو جه 0 ← 100 (ماشي في 1001)، لو جه 1 ← 101 وآخرها 01 (ماشي في 010) فنروح C. وبعد ما نلاقي 010 آخرها «10» فنروح E، وبعد 1001 آخرها «01» فنروح C.</p><div data-fsm="p6"></div></div>
+  <div id="p7" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 7 · Moore minimal</b><span>8 states</span></div><div data-fsm="p7"></div></div>
+
+  <h3 id="l4-count">النوع التالت: شروط وعدّ</h3>
+  <p>مسائل مش بتدوّر على نمط معيّن، بتعدّ حاجات. هنا الـ state = «عدّيت لحد فين في كل شرط».</p>
+  <p><b>Problem 8</b>: Z = 1 ويفضل 1 للأبد، لما يكون جه على الأقل 1 واحد و 3 أصفار، بأي ترتيب. فكّر فيها كـ جدول: عدد الأصفار (0، 1، 2، 3+) × شفت 1 ولا لأ. يعني عمودين × 4 = 8 حالات، وآخرهم H/1 بيلف على نفسه.</p>
+  <p><b>Problem 9</b>: Z = 1 لو عدد الـ 1 فردي <b>و</b> شفنا صفرين ورا بعض في أي وقت قبل كده. شرطين مستقلين: الـ parity (زوجي/فردي) × حالة الأصفار (مفيش، صفر واحد لسه جاي، شفنا 00). يعني 2 × 3 = 6 حالات.</p>
+  <div class="switch" data-switch>
+    <button type="button" data-target="p8">Problem 8</button>
+    <button type="button" data-target="p9">Problem 9</button>
+  </div>
+  <div id="p8" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 8 · Moore</b><span>1 واحد + 3 أصفار بأي ترتيب</span></div><div data-fsm="p8"></div></div>
+  <div id="p9" class="panel"><div class="ph"><span class="kind">simulator</span><b>Problem 9 · Moore</b><span>عدد فردي من الـ 1 + شفنا 00</span></div>
+    <p class="small">خلي بالك: 1 بيقلب الـ parity بس، ومبيبوّظش «شفنا 00» لو حصلت. بس لو كنا شايفين صفر واحد وجه 1، الصفر ده راح. عشان كده E بـ 1 بتروح B مش لحالة «فيها صفر».</p><div data-fsm="p9"></div></div>
+
+  <h3 id="l4-practice">ابنيها بنفسك</h3>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>Problem 4 من الصفر: 101 Mealy overlap</b></div><div data-fill="l4-101"></div></div>
+  <div class="panel"><div class="ph"><span class="kind">exercise</span><b>تمرين جديد: 110 Mealy overlap</b></div><div data-fill="l4-110"></div></div>
+  <div class="note tip"><span class="tag">إزاي تتأكد من إجابتك في الامتحان</span><p>اختار sequence فيها النمط مرتين بيتداخلوا (زي 10101 لـ 101، أو 11110 لـ 110)، وامشي عليها في الـ graph بإيدك. لو الخرج طلع 1 في الأماكن الصح بس، الـ graph سليم.</p></div>
+
+  <h3 id="l4-quiz">اختبر نفسك</h3>
+  <div class="quiz" data-quiz="l4"></div>
+  <div class="note sheet"><span class="tag">الشيت</span><p><a href="#s3">Sheet 03</a> تحت على طول، كله state graphs.</p></div>
+  <p class="vids"><span class="muted">عايز تتفرج؟ (بحث يوتيوب)</span> <a href="https://www.youtube.com/results?search_query=sequence+detector+mealy+moore+overlapping+state+diagram" target="_blank" rel="noopener">sequence detector Mealy/Moore</a></p>
+  <div class="done-row"><button class="done-btn" type="button" data-lec="l4" aria-pressed="false">علّم إني خلّصت المحاضرة دي</button></div>
+</section>
+
+<!-- ================= SHEET 03 ================= -->
+<section class="lec sheet-sec" id="s3">
+  <div class="lec-head">
+    <div class="eyebrow">Sheet 03 · CSE236N · بعد L4</div>
+    <h2>Sequential Circuits Design</h2>
+    <div class="ar">6 أسئلة: كلها «اطلع الـ state graph من الكلام»</div>
+  </div>
+  <div class="policy"><p>الشيت ده كله تطبيق على <a href="#l4">L4</a>. قبل أي سؤال اسأل نفسك: «الدايرة محتاجة تفتكر إيه بالظبط عشان تقرر الخرج؟». الإجابة دي هي الـ states.</p></div>
+
+  <article class="sq" id="s3-q1">
+    <div class="sq-h"><span class="qb">Q1</span><h3>Z=1 لو آخر 3 bits فيهم صفرين بالظبط</h3><span class="topic">Mealy · sliding window</span></div>
+    <p class="en">Design a Mealy network: Z = 1 whenever the input has exactly two 0's in the last three input bits.</p>
+    <details class="hint"><summary>تلميح: الدايرة تفتكر إيه؟</summary><div>
+      <p>عشان تقرر الخرج لما الـ bit الجديد يوصل، محتاج تعرف <b>آخر bitين</b> بس. الجديد + الاتنين دول = آخر 3. يعني 4 states: 00، 01، 10، 11.</p>
+      <p>ودي mealy، فالخرج على السهم: من حالة «ab» لو جه x، عدّ الأصفار في a و b و x.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>State table</b></div><div data-fill="s3q1-z"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>اتأكد</b><span>الحالة = آخر bitين</span></div><div data-fsm="s3q1"></div></div>
+    <details class="sol"><summary>ملاحظات على الحل</summary><div>
+      <p>4 states بس، ودي أقل حاجة. ولاحظ إن 00 و 10 ليهم نفس الحالات الجاية (00 و 01)، بس خرجهم مختلف، فمينفعش يتدمجوا.</p>
+      <p><b>البداية</b>: قبل ما 3 bits يوصلوا، «آخر 3» مش موجودين. أنا بدأت من 11، كأن قبل البداية كان فيه 1s مش بتتعد كأصفار. لو المعيد عايز ميطلعش 1 خالص قبل أول 3 bits، ضيف 3 حالات بداية: R (لسه مفيش)، R0، R1، وخرجهم كله 0، وبعد الـ bit التاني ادخل على الحالة اللي بتمثل آخر bitين.</p></div></details>
+  </article>
+
+  <article class="sq" id="s3-q2">
+    <div class="sq-h"><span class="qb">Q2</span><h3>Moore odd parity checker على chunks من 4</h3><span class="topic">Moore · groups بـ reset</span></div>
+    <p class="en">A Moore odd parity checker: input arrives in 4-bit chunks (3 data bits + 1 parity bit). The error output is 1 whenever the received 4-bit chunk has an even number of 1's.</p>
+    <details class="hint"><summary>تلميح: نفس فكرة Problem 1 في L4</summary><div>
+      <p>دي «مجموعات بـ reset» زي <a href="#l4-groups">L4</a>. محتاج تفتكر حاجتين: <b>وصلت لـ bit رقم كام</b> في الـ chunk، و<b>عدد الـ 1 لحد دلوقتي زوجي ولا فردي</b>.</p>
+      <p>ولأنها Moore، الخرج 1 لازم يبقى «ساكن» في حالة لوحده بعد الـ bit الرابع.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Parity checker</b><span>جرّب 1011 0110 1000</span></div><div data-fsm="s3q2"></div></div>
+    <details class="sol"><summary>الحل خطوة بخطوة</summary><div>
+      <ol class="steps">
+        <li>S = بداية chunk. بعد كل bit بنروح لحالة فيها (العدد، الـ parity): E1/O1، E2/O2، E3/O3.</li>
+        <li>الـ 0 بيسيب الـ parity زي ما هي، والـ 1 بيقلبها: E ← O و O ← E.</li>
+        <li>بعد الـ bit الرابع: لو الـ parity زوجية ← حالة ERR/1. لو فردية ← الـ chunk سليم.</li>
+        <li>الـ chunk السليم المفروض يروح لحالة OK/0، والحالة دي بتعمل بالظبط زي S (خرجها 0، و0 ← E1، و1 ← O1). فهما equivalent وبندمجهم: الـ chunk السليم يرجع S على طول.</li>
+        <li>ERR/1: الـ bit اللي بعده بيبدأ chunk جديد، فبيروح E1 أو O1 زي S بالظبط.</li>
+      </ol>
+      <p>المجموع <b>8 states</b>. في الرسمة: الأسهم اللي راجعة لـ S والأسهم اللي طالعة من ERR مكتوبة كـ «→ الحالة» عشان الرسمة متتلخبطش.</p></div></details>
+  </article>
+
+  <article class="sq" id="s3-q3">
+    <div class="sq-h"><span class="qb">Q3</span><h3>Moore transition detector</h3><span class="topic">Moore · تفتكر آخر bit</span></div>
+    <p class="en">A Moore transition detector: z = 1 whenever a transition 0→1 or 1→0 is detected in the serial input x. Assume an asynchronous reset to a reset state.</p>
+    <div class="note err"><span class="tag">ناقص في الشيت</span><p>السؤال بيقول «A sample input/output data is given below» بس مفيش داتا في الشيت. الحل تحت مش محتاجها.</p></div>
+    <details class="hint"><summary>تلميح</summary><div>
+      <p>عشان تعرف فيه transition محتاج تفتكر <b>آخر bit</b>. ولأنها Moore، لازم الخرج يبقى جوه الحالة، فكل «آخر bit» ليه نسختين: واحدة جت من غير تغيير (z=0)، وواحدة لسه متغيرة (z=1). وحالة reset لأول bit.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Transition detector</b></div><div data-fsm="s3q3"></div></div>
+    <details class="sol"><summary>الحل</summary><div>
+      <div class="scrollx"><table class="tbl"><thead><tr><th>P.S.</th><th>x=0</th><th>x=1</th><th class="res">z</th></tr></thead><tbody>
+        <tr><th>R</th><td>A</td><td>B</td><td class="res">0</td></tr><tr><th>A <small>(…0)</small></th><td>A</td><td>D</td><td class="res">0</td></tr><tr><th>B <small>(…1)</small></th><td>C</td><td>B</td><td class="res">0</td></tr><tr><th>C <small>(1→0)</small></th><td>A</td><td>D</td><td class="res">1</td></tr><tr><th>D <small>(0→1)</small></th><td>C</td><td>B</td><td class="res">1</td></tr></tbody></table></div>
+      <p>5 states. R مينفعش يتدمج مع A أو B لأن أول bit مفيهوش transition.</p></div></details>
+  </article>
+
+  <article class="sq" id="s3-q4">
+    <div class="sq-h"><span class="qb">Q4</span><h3>Mealy: z=1 لو آخر قيمتين 00 أو 11</h3><span class="topic">Mealy · 3 states</span></div>
+    <p class="en">Design a Mealy FSM with input w and output z: z = 1 when the previous two values of w were 00 or 11; otherwise z = 0.</p>
+    <details class="hint"><summary>تلميح</summary><div><p>يعني z=1 لما الـ w الجديد زي اللي قبله. الدايرة محتاجة تفتكر آخر قيمة بس، + حالة reset.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">exercise</span><b>State table</b></div><div data-fill="s3q4-tbl"></div></div>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>اتأكد</b></div><div data-fsm="s3q4"></div></div>
+  </article>
+
+  <article class="sq" id="s3-q5">
+    <div class="sq-h"><span class="qb">Q5</span><h3>نفس السؤال بـ Moore</h3><span class="topic">Moore · 5 states</span></div>
+    <p class="en">Repeat the previous question as a Moore FSM.</p>
+    <details class="hint"><summary>تلميح</summary><div><p>زي ما شفنا في L4: Moore محتاج حالات زيادة عشان الـ 1 يسكن جوه حالة. هنا الخرج 1 بييجي من حالتين مختلفتين (00 و 11)، فهتزود حالتين: D/1 و E/1.</p></div></details>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>Moore version</b><span>قارنها بالـ Mealy على نفس الـ sequence</span></div><div data-fsm="s3q5"></div></div>
+    <details class="sol"><summary>الحل</summary><div>
+      <p>A/0 reset ← 0: B، 1: C. &nbsp; B/0 (آخرها 0) ← 0: D، 1: C. &nbsp; C/0 (آخرها 1) ← 0: B، 1: E. &nbsp; D/1 (00) ← 0: D، 1: C. &nbsp; E/1 (11) ← 0: B، 1: E.</p>
+      <p>5 states مقابل 3 في الـ Mealy، والخرج بيظهر متأخر نبضة. ده نفس الفرق اللي في <a href="#l4-overlap">Problem 4 في L4</a>.</p></div></details>
+  </article>
+
+  <article class="sq" id="s3-q6">
+    <div class="sq-h"><span class="qb">Q6</span><h3>نفس الفكرة بحروف a و b</h3><span class="topic">Mealy · alphabet</span></div>
+    <p class="en">Design a Mealy FSM over the alphabet {a, b} that accepts all strings of length at least 2 whose final two symbols are the same (output z = 1).</p>
+    <p>ده Q4 بالظبط بس بحروف: اعتبر a = 0 و b = 1. «آخر حرفين زي بعض» = «آخر قيمتين 00 أو 11». و «length at least 2» متحققة لوحدها لأن من A (أول حرف) الخرج دايمًا 0.</p>
+    <div class="panel"><div class="ph"><span class="kind">simulator</span><b>اكتب a و b</b></div><div data-fsm="s3q6"></div></div>
+  </article>
+
+  <div class="done-row"><button class="done-btn" type="button" data-lec="s3" aria-pressed="false">علّم إني خلّصت الشيت ده</button></div>
+</section>
+
+<footer>
+  <p>مبني على محاضرات Digital Logic Circuits II (Prof. Dr. Magdy A. Ahmed، قسم هندسة الحاسبات والنظم، هندسة إسكندرية). الحلول اللي مكتوب عليها «مني» أو «غلطة في السلايد» اتأكدت منها بالحساب، بس راجعها مع المعيد برضو.</p>
+</footer>
+</div>
+</main>
+</div>
+<script src="app.js"></script>
